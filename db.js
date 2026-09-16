@@ -18,12 +18,13 @@ import {
 
 // 1. Firebase 配置 (請更換為你的 Firebase Config)
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyAVSqdFFoepdwrRtxGjyoSBPwHlfxORGd8",
+  authDomain: "newtech-system.firebaseapp.com",
+  projectId: "newtech-system",
+  storageBucket: "newtech-system.firebasestorage.app",
+  messagingSenderId: "871887832252",
+  appId: "1:871887832252:web:bd02bbb128616a5187fcb9",
+  measurementId: "G-QTTFP959KP"
 };
 
 // 初始化 Firebase 與 Firestore
