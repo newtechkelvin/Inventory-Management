@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>智倉 WAREHOUSE FLOW - 倉儲管理系統</title>
+  <title>倉儲管理系統</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Font Awesome Icons -->
@@ -38,8 +38,8 @@
               <i class="fa-solid fa-boxes-stacked text-base"></i>
             </div>
             <div class="sidebar-text">
-              <h1 class="font-black text-slate-900 text-base leading-none tracking-tight">智倉</h1>
-              <span class="text-[10px] font-bold tracking-widest text-slate-400 uppercase">WAREHOUSE FLOW</span>
+              <h1 class="font-black text-slate-900 text-base leading-none tracking-tight">倉儲管理系統</h1>
+              <span class="text-[10px] font-bold tracking-widest text-slate-400 uppercase">Inventory System</span>
             </div>
           </div>
           <button onclick="toggleSidebar()" class="text-slate-400 hover:text-slate-600 md:flex hidden p-1.5 rounded-lg hover:bg-slate-100 transition">
@@ -134,10 +134,10 @@
               <div class="space-y-2">
                 <div class="flex items-center space-x-2 text-sky-400 text-xs font-extrabold uppercase tracking-widest">
                   <i class="fa-solid fa-cubes"></i>
-                  <span>WAREHOUSE OVERVIEW</span>
+                  <span>INVENTORY OVERVIEW</span>
                 </div>
-                <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight">今日貨倉，一目了然。</h1>
-                <p class="text-xs md:text-sm text-slate-300">即時掌握存量、貨位同時辦流程。你有 <span class="text-sky-400 font-bold">4</span> 個未讀通知。</p>
+                <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight">工場倉存管理系統</h1>
+                <p class="text-xs md:text-sm text-slate-300">你有 <span class="text-sky-400 font-bold">4</span> 個未讀通知。</p>
               </div>
 
               <div class="flex items-center gap-3">
@@ -1523,4 +1523,10 @@
     window.handleCSVImport = handleCSVImport;
 
     window.onload = function() {
-<!-- ... existing code -->
+      initAuth();
+      renderOverview();
+      renderInventoryTable();
+    };
+  </script>
+</body>
+</html>
