@@ -623,6 +623,74 @@
       getDocs 
     } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+    window.sidebarOpen = typeof window.sidebarOpen !== 'undefined' ? window.sidebarOpen : true;
+
+    // 全域側邊欄切換函式
+    function toggleSidebar(forceState) {
+      const sidebar = document.getElementById('sidebar');
+      const backdrop = document.getElementById('sidebarBackdrop');
+      if (!sidebar) return;
+
+      if (typeof forceState === 'boolean') {
+        window.sidebarOpen = forceState;
+      } else {
+        window.sidebarOpen = !window.sidebarOpen;
+      }
+
+      if (window.sidebarOpen) {
+        sidebar.classList.remove('-translate-x-full');
+        sidebar.classList.add('translate-x-0');
+        if (backdrop) backdrop.classList.remove('hidden');
+      } else {
+        sidebar.classList.add('-translate-x-full');
+        sidebar.classList.remove('translate-x-0');
+        if (backdrop) backdrop.classList.add('hidden');
+      }
+    }
+    window.toggleSidebar = toggleSidebar;
+
+    // 全域 Tab 切換函式
+    function switchTab(tabId) {
+      const tabs = ['overview', 'inventory', 'movement', 'withdrawal', 'location', 'labels', 'reports', 'logs'];
+      tabs.forEach(t => {
+        const viewEl = document.getElementById(`view-${t}`);
+        const navEl = document.getElementById(`nav-${t}`);
+        if (viewEl) viewEl.classList.add('hidden');
+        if (navEl) {
+          navEl.classList.remove('bg-sky-50', 'text-sky-700', 'font-semibold');
+          navEl.classList.add('text-slate-600');
+        }
+      });
+
+      const targetView = document.getElementById(`view-${tabId}`);
+      const targetNav = document.getElementById(`nav-${tabId}`);
+      if (targetView) targetView.classList.remove('hidden');
+      if (targetNav) {
+        targetNav.classList.add('bg-sky-50', 'text-sky-700', 'font-semibold');
+        targetNav.classList.remove('text-slate-600');
+      }
+
+      const pageTitleMap = {
+        overview: '總覽',
+        inventory: '即時庫存',
+        movement: '入倉與調整',
+        withdrawal: '提取流程',
+        location: '貨位管理',
+        labels: '標籤列印',
+        reports: '報表',
+        logs: '操作與通知'
+      };
+
+      const titleEl = document.getElementById('currentPageTitle');
+      if (titleEl) titleEl.textContent = pageTitleMap[tabId] || '總覽';
+
+      // 手機版點擊導覽選單後自動收合側邊欄
+      if (window.innerWidth < 768) {
+        toggleSidebar(false);
+      }
+    }
+    window.switchTab = switchTab;
+
     const userFirebaseConfig = {
       apiKey: "AIzaSyAVSqdFFoepdwrRtxGjyoSBPwHlfxORGd8",
       authDomain: "newtech-system.firebaseapp.com",
@@ -642,46 +710,11 @@
 
     let currentUser = null;
 
-    // Strict Collection Path References
+    // Collection Path References
     const productsColRef = collection(db, 'artifacts', appId, 'public', 'data', 'products');
     const locationsColRef = collection(db, 'artifacts', appId, 'public', 'data', 'locations');
     const withdrawalsColRef = collection(db, 'artifacts', appId, 'public', 'data', 'withdrawals');
     const movementsColRef = collection(db, 'artifacts', appId, 'public', 'data', 'movements');
-
-    const store = {
-      currentPage: 1,
-      pageSize: 10,
-      sortField: 'id',
-      sortAsc: true,
-      products: [],
-      locations: [],
-      withdrawals: [],
-      movements: []
-    };
-
-    let sidebarOpen = true;
-
-    async function initAuth() {
-      try {
-        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-          await signInWithCustomToken(auth, __initial_auth_token);
-        } else {
-          await signInAnonymously(auth);
-        }
-      } catch (err) {
-        console.error("Auth error:", err);
-        showToast("Firebase 驗證失敗: " + err.message, "error");
-      }
-    }
-
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        currentUser = user;
-        const statusEl = document.querySelector('.sidebar-text span');
-        if (statusEl) statusEl.textContent = `雲端即時連線 (${user.uid.slice(0, 5)}...)`;
-        setupRealtimeListeners();
-      }
-    });
 
     const defaultProducts = [
       { id: '0314-001', name: 'Canter安全帶扣(鋼絲長扣)', location: '細倉1樓 / 3-3', stock: 5, min: 10, unit: '個', date: '28/8/2026' },
@@ -710,290 +743,147 @@
       { id: 'WO-20260909-060', applicant: '德哥', purpose: '維修Canter ZU8831', status: 'completed', date: '9/9/2026', createdAt: Date.now() - 3000 }
     ];
 
-    function setupRealtimeListeners() {
-      // 1. Products Listener
-      onSnapshot(productsColRef, async (snapshot) => {
-        if (snapshot.empty && currentUser) {
-          for (const item of defaultProducts) {
-            await setDoc(doc(productsColRef, item.id), item);
-          }
-          return;
-        }
-        store.products = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
-        renderOverview();
-        renderInventoryTable();
-        populateMovementSelects();
-        populateLabelSelect();
-      }, (err) => {
-        console.error("Products Sync Error:", err);
-        showToast("貨品資料即時同步失誤", "error");
-      });
+    const store = {
+      currentPage: 1,
+      pageSize: 10,
+      sortField: 'id',
+      sortAsc: true,
+      products: [...defaultProducts],
+      locations: [...defaultLocations],
+      withdrawals: [...defaultWithdrawals],
+      movements: []
+    };
 
-      // 2. Locations Listener
-      onSnapshot(locationsColRef, async (snapshot) => {
-        if (snapshot.empty && currentUser) {
-          for (const loc of defaultLocations) {
-            await addDoc(locationsColRef, loc);
-          }
-          return;
-        }
-        store.locations = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        renderLocations();
-      }, (err) => {
-        console.error("Locations Sync Error:", err);
-      });
-
-      // 3. Withdrawals Listener
-      onSnapshot(withdrawalsColRef, async (snapshot) => {
-        if (snapshot.empty && currentUser) {
-          for (const item of defaultWithdrawals) {
-            await addDoc(withdrawalsColRef, item);
-          }
-          return;
-        }
-        const data = snapshot.docs.map(doc => ({ docId: doc.id, ...doc.data() }));
-        data.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-        store.withdrawals = data;
-        renderWithdrawals();
-        renderOverview();
-      }, (err) => {
-        console.error("Withdrawals Sync Error:", err);
-      });
-
-      // 4. Movements Listener
-      onSnapshot(movementsColRef, (snapshot) => {
-        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        data.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-        store.movements = data;
-        renderMovementLogs();
-        renderLogs();
-      }, (err) => {
-        console.error("Movements Sync Error:", err);
-      });
-    }
-
-    function toggleSidebar(forceState) {
-      const sidebar = document.getElementById('sidebar');
-      const backdrop = document.getElementById('sidebarBackdrop');
-      const textElements = document.querySelectorAll('.sidebar-text');
-
-      if (!sidebar) return;
-
-      if (typeof forceState === 'boolean') {
-        sidebarOpen = forceState;
-      } else {
-        sidebarOpen = !sidebarOpen;
-      }
-
-      if (window.innerWidth < 768) {
-        if (sidebarOpen) {
-          sidebar.classList.remove('-translate-x-full');
-          if (backdrop) backdrop.classList.remove('hidden');
-        } else {
-          sidebar.classList.add('-translate-x-full');
-          if (backdrop) backdrop.classList.add('hidden');
-        }
-      } else {
-        if (sidebarOpen) {
-          sidebar.classList.remove('w-20');
-          sidebar.classList.add('w-64');
-          textElements.forEach(el => el.classList.remove('hidden'));
-        } else {
-          sidebar.classList.remove('w-64');
-          sidebar.classList.add('w-20');
-          textElements.forEach(el => el.classList.add('hidden'));
-        }
-      }
-    }
-
-    function switchTab(tabId) {
-      const views = ['overview', 'inventory', 'movement', 'withdrawal', 'location', 'labels', 'reports', 'logs'];
-      views.forEach(v => {
-        const el = document.getElementById(`view-${v}`);
-        if (el) el.classList.add('hidden');
-        
-        const nav = document.getElementById(`nav-${v}`);
-        if (nav) {
-          nav.classList.remove('text-sky-700', 'bg-sky-50', 'font-semibold');
-          nav.classList.add('text-slate-600', 'hover:bg-slate-50', 'hover:text-slate-900');
-        }
-      });
-
-      const targetView = document.getElementById(`view-${tabId}`);
-      if (targetView) targetView.classList.remove('hidden');
-
-      const targetNav = document.getElementById(`nav-${tabId}`);
-      if (targetNav) {
-        targetNav.classList.remove('text-slate-600', 'hover:bg-slate-50', 'hover:text-slate-900');
-        targetNav.classList.add('text-sky-700', 'bg-sky-50', 'font-semibold');
-      }
-
-      const pageTitleEl = document.getElementById('currentPageTitle');
-      if (pageTitleEl) {
-        const titles = {
-          overview: '總覽',
-          inventory: '即時庫存',
-          movement: '入倉與調整',
-          withdrawal: '提取流程',
-          location: '貨位管理',
-          labels: '標籤列印',
-          reports: '報表分析',
-          logs: '操作與通知'
-        };
-        pageTitleEl.textContent = titles[tabId] || '總覽';
-      }
-
-      if (window.innerWidth < 768) {
-        toggleSidebar(false);
-      }
-
-      if (tabId === 'overview') renderOverview();
-      if (tabId === 'inventory') renderInventoryTable();
-      if (tabId === 'movement') populateMovementSelects();
-      if (tabId === 'withdrawal') renderWithdrawals();
-      if (tabId === 'location') renderLocations();
-      if (tabId === 'labels') populateLabelSelect();
-      if (tabId === 'logs') renderLogs();
-    }
-
-    function showToast(message, type = 'success') {
+    function showToast(message, type = 'info') {
       const container = document.getElementById('toastContainer');
       if (!container) return;
-      const toast = document.createElement('div');
-      
-      const bgColor = type === 'success' ? 'bg-slate-900 text-white' : 'bg-rose-600 text-white';
-      const icon = type === 'success' ? 'fa-circle-check text-emerald-400' : 'fa-triangle-exclamation text-amber-300';
 
-      toast.className = `${bgColor} px-4 py-3 rounded-2xl shadow-xl border border-slate-700/30 flex items-center space-x-3 text-xs pointer-events-auto transition-all duration-300 transform translate-y-2 opacity-0`;
-      toast.innerHTML = `
-        <i class="fa-solid ${icon} text-base"></i>
-        <span class="font-medium">${message}</span>
-      `;
+      const toast = document.createElement('div');
+      const bgClass = type === 'success' ? 'bg-emerald-600 text-white' : 
+                      type === 'error' ? 'bg-rose-600 text-white' : 
+                      'bg-slate-800 text-white';
+      const iconClass = type === 'success' ? 'fa-circle-check' : 
+                        type === 'error' ? 'fa-circle-xmark' : 
+                        'fa-circle-info';
+
+      toast.className = `flex items-center space-x-2 px-4 py-3 rounded-xl shadow-xl text-xs font-semibold ${bgClass} transition-all duration-300 transform translate-y-2 opacity-0 pointer-events-auto`;
+      toast.innerHTML = `<i class="fa-solid ${iconClass}"></i><span>${message}</span>`;
 
       container.appendChild(toast);
-      setTimeout(() => toast.classList.remove('translate-y-2', 'opacity-0'), 10);
+
+      requestAnimationFrame(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+      });
+
       setTimeout(() => {
         toast.classList.add('opacity-0', 'translate-y-2');
         setTimeout(() => toast.remove(), 300);
       }, 3500);
     }
+    window.showToast = showToast;
 
-    function openModal(modalId) {
-      const el = document.getElementById(modalId);
-      if (el) {
-        if (modalId === 'modal-add-product' && !document.getElementById('editProductId').value) {
-          document.getElementById('modalProductTitle').textContent = "新增貨品";
-          document.getElementById('prodId').disabled = false;
-          document.getElementById('prodId').value = "";
-          document.getElementById('prodName').value = "";
-          document.getElementById('prodUnit').value = "個";
-          document.getElementById('prodMin').value = "5";
-          document.getElementById('prodStock').value = "10";
-          document.getElementById('prodLocation').value = "";
-          populateProdLocationSelect('');
-        }
-        el.classList.remove('hidden');
+    function openModal(id) {
+      const modal = document.getElementById(id);
+      if (!modal) return;
+      modal.classList.remove('hidden');
+      if (id === 'modal-add-product') {
+        populateProdLocationSelect();
       }
     }
+    window.openModal = openModal;
 
-    function closeModal(modalId) {
-      const el = document.getElementById(modalId);
-      if (el) {
-        el.classList.add('hidden');
-        if (modalId === 'modal-add-product') {
-          document.getElementById('editProductId').value = "";
-        }
-      }
+    function closeModal(id) {
+      const modal = document.getElementById(id);
+      if (modal) modal.classList.add('hidden');
     }
+    window.closeModal = closeModal;
 
     function renderOverview() {
       const totalTypesEl = document.getElementById('stat-total-types');
       const totalStockEl = document.getElementById('stat-total-stock');
       const lowStockEl = document.getElementById('stat-low-stock');
-      const pendingWithdrawalsEl = document.getElementById('stat-pending-withdrawals');
+      const pendingWithEl = document.getElementById('stat-pending-withdrawals');
 
-      const lowStockItems = store.products.filter(p => p.stock <= p.min);
-      const totalStockSum = store.products.reduce((acc, p) => acc + (p.stock || 0), 0);
-      const pendingWithdrawalsCount = store.withdrawals.filter(w => w.status === 'pending').length;
+      const totalTypes = store.products.length;
+      const totalStock = store.products.reduce((acc, p) => acc + (p.stock || 0), 0);
+      const lowStockItems = store.products.filter(p => (p.stock || 0) <= (p.min || 0));
+      const pendingWith = store.withdrawals.filter(w => w.status === 'pending');
 
-      if (totalTypesEl) totalTypesEl.textContent = store.products.length;
-      if (totalStockEl) totalStockEl.textContent = totalStockSum.toLocaleString();
-      if (lowStockEl) lowStockEl.textContent = lowStockItems.length;
-      if (pendingWithdrawalsEl) pendingWithdrawalsEl.textContent = pendingWithdrawalsCount;
+      if (totalTypesEl) totalTypesEl.textContent = totalTypes.toLocaleString();
+      if (totalStockEl) totalStockEl.textContent = totalStock.toLocaleString();
+      if (lowStockEl) lowStockEl.textContent = lowStockItems.length.toString();
+      if (pendingWithEl) pendingWithEl.textContent = pendingWith.length.toString();
 
-      // Low Stock List in Dashboard
-      const lowStockContainer = document.getElementById('overview-low-stock-list');
-      if (lowStockContainer) {
+      const lowListEl = document.getElementById('overview-low-stock-list');
+      if (lowListEl) {
         if (lowStockItems.length === 0) {
-          lowStockContainer.innerHTML = `<p class="text-xs text-slate-400 py-3 text-center">所有貨品庫存正常</p>`;
+          lowListEl.innerHTML = '<p class="text-xs text-slate-400 py-2">目前無低存量項目</p>';
         } else {
-          lowStockContainer.innerHTML = lowStockItems.slice(0, 5).map(item => `
+          lowListEl.innerHTML = lowStockItems.slice(0, 6).map(item => `
             <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100">
               <div>
-                <p class="font-bold text-slate-800 text-xs">${item.id} · ${item.name}</p>
-                <p class="text-[10px] text-slate-400">${item.location}</p>
+                <span class="font-bold text-slate-800 text-xs">${item.id} · ${item.name}</span>
+                <p class="text-[11px] text-slate-400 mt-0.5">${item.location || '無貨位'}</p>
               </div>
               <div class="text-right">
-                <span class="font-black text-rose-600 text-sm">${item.stock} ${item.unit}</span>
-                <p class="text-[9px] text-slate-400">門檻 ${item.min}</p>
+                <span class="font-bold text-rose-600 text-xs">${item.stock} ${item.unit || '個'}</span>
+                <p class="text-[10px] text-slate-400">門檻 ${item.min}</p>
               </div>
             </div>
           `).join('');
         }
       }
 
-      // Recent Withdrawals in Dashboard
-      const recentWithdrawalsContainer = document.getElementById('overview-recent-withdrawals');
-      if (recentWithdrawalsContainer) {
+      const recentWithEl = document.getElementById('overview-recent-withdrawals');
+      if (recentWithEl) {
         if (store.withdrawals.length === 0) {
-          recentWithdrawalsContainer.innerHTML = `<p class="text-xs text-slate-400 py-3 text-center">尚無提取單據</p>`;
+          recentWithEl.innerHTML = '<p class="text-xs text-slate-400 py-2">暫無提取記錄</p>';
         } else {
-          recentWithdrawalsContainer.innerHTML = store.withdrawals.slice(0, 5).map(w => {
-            let badgeClass = "bg-slate-100 text-slate-600";
-            let statusTxt = "待處理";
-            if (w.status === 'completed') { badgeClass = "bg-emerald-50 text-emerald-600"; statusTxt = "已完成"; }
-            if (w.status === 'rejected') { badgeClass = "bg-rose-50 text-rose-600"; statusTxt = "已拒絕"; }
-
+          recentWithEl.innerHTML = store.withdrawals.slice(0, 5).map(w => {
+            const badgeColor = w.status === 'completed' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                               w.status === 'rejected' ? 'bg-rose-50 text-rose-700 border-rose-200' :
+                               'bg-amber-50 text-amber-700 border-amber-200';
+            const statusText = w.status === 'completed' ? '已完成' : w.status === 'rejected' ? '已拒絕' : '待審批';
             return `
               <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100">
                 <div>
-                  <p class="font-bold text-slate-800 text-xs">${w.id}</p>
-                  <p class="text-[10px] text-slate-400">${w.applicant} · ${w.purpose}</p>
+                  <span class="font-bold text-slate-800 text-xs">${w.id}</span>
+                  <p class="text-[11px] text-slate-400 mt-0.5">${w.applicant} · ${w.purpose}</p>
                 </div>
-                <span class="px-2.5 py-1 rounded-full text-[10px] font-bold ${badgeClass}">${statusTxt}</span>
+                <span class="px-2 py-1 rounded-lg text-[10px] font-bold border ${badgeColor}">${statusText}</span>
               </div>
             `;
           }).join('');
         }
       }
     }
+    window.renderOverview = renderOverview;
 
     function renderInventoryTable() {
-      const searchInput = document.getElementById('inventorySearch');
-      const whFilterInput = document.getElementById('warehouseFilter');
-      const stFilterInput = document.getElementById('statusFilter');
-
-      const query = searchInput ? searchInput.value.toLowerCase() : '';
-      const whFilter = whFilterInput ? whFilterInput.value : 'ALL';
-      const stFilter = stFilterInput ? stFilterInput.value : 'ALL';
+      const search = (document.getElementById('inventorySearch')?.value || '').toLowerCase().trim();
+      const whFilter = document.getElementById('warehouseFilter')?.value || 'ALL';
+      const statusFilter = document.getElementById('statusFilter')?.value || 'ALL';
 
       let filtered = store.products.filter(p => {
-        const matchQuery = (p.id || '').toLowerCase().includes(query) || 
-                           (p.name || '').toLowerCase().includes(query) || 
-                           (p.location || '').toLowerCase().includes(query);
-        const matchWH = whFilter === 'ALL' || (p.location || '').includes(whFilter);
-        
+        const matchSearch = !search || 
+          p.id.toLowerCase().includes(search) || 
+          p.name.toLowerCase().includes(search) || 
+          (p.location && p.location.toLowerCase().includes(search));
+
+        const matchWh = whFilter === 'ALL' || (p.location && p.location.includes(whFilter));
+
         let status = 'normal';
         if (p.stock === 0) status = 'out_of_stock';
         else if (p.stock <= p.min) status = 'low_stock';
-        const matchST = stFilter === 'ALL' || status === stFilter;
 
-        return matchQuery && matchWH && matchST;
+        const matchStatus = statusFilter === 'ALL' || status === statusFilter;
+
+        return matchSearch && matchWh && matchStatus;
       });
 
       filtered.sort((a, b) => {
-        let valA = a[store.sortField] || '';
-        let valB = b[store.sortField] || '';
+        let valA = a[store.sortField] ?? '';
+        let valB = b[store.sortField] ?? '';
         if (typeof valA === 'string') valA = valA.toLowerCase();
         if (typeof valB === 'string') valB = valB.toLowerCase();
         if (valA < valB) return store.sortAsc ? -1 : 1;
@@ -1001,37 +891,40 @@
         return 0;
       });
 
-      const startIdx = (store.currentPage - 1) * store.pageSize;
-      const pageData = filtered.slice(startIdx, startIdx + store.pageSize);
+      const total = filtered.length;
+      const totalPages = Math.ceil(total / store.pageSize) || 1;
+      if (store.currentPage > totalPages) store.currentPage = totalPages;
+
+      const start = (store.currentPage - 1) * store.pageSize;
+      const pageItems = filtered.slice(start, start + store.pageSize);
 
       const tbody = document.getElementById('inventoryTableBody');
       if (tbody) {
-        if (pageData.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-slate-400">無符合條件的貨品資料</td></tr>`;
+        if (pageItems.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-slate-400">沒有找到符合條件的貨品</td></tr>`;
         } else {
-          tbody.innerHTML = pageData.map(p => {
-            let badge = `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-600">正常</span>`;
+          tbody.innerHTML = pageItems.map(p => {
+            let statusBadge = `<span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">正常</span>`;
             if (p.stock === 0) {
-              badge = `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600">缺貨</span>`;
+              statusBadge = `<span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-300">缺貨</span>`;
             } else if (p.stock <= p.min) {
-              badge = `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-600">低存量</span>`;
+              statusBadge = `<span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200 animate-pulse">低存量</span>`;
             }
 
             return `
               <tr class="hover:bg-slate-50/80 transition">
                 <td class="py-3 px-4">
-                  <p class="font-bold text-slate-900">${p.id}</p>
-                  <p class="text-[11px] text-slate-400">${p.name}</p>
+                  <span class="font-mono font-bold text-slate-900">${p.id}</span>
+                  <p class="text-slate-500 text-[11px] font-normal">${p.name}</p>
                 </td>
-                <td class="py-3 px-4 text-slate-600 font-medium">${p.location}</td>
+                <td class="py-3 px-4 font-semibold text-slate-700">${p.location || '-'}</td>
+                <td class="py-3 px-4 text-right font-black text-slate-900 text-sm">${p.stock} <span class="text-[10px] text-slate-400 font-normal">${p.unit || '個'}</span></td>
+                <td class="py-3 px-4">${statusBadge}</td>
+                <td class="py-3 px-4 text-slate-400 text-[11px]">${p.date || '-'}</td>
                 <td class="py-3 px-4 text-right">
-                  <span class="font-extrabold text-sm ${p.stock <= p.min ? 'text-rose-600' : 'text-slate-900'}">${p.stock}</span>
-                  <span class="text-[10px] text-slate-400 font-normal">${p.unit}</span>
-                </td>
-                <td class="py-3 px-4">${badge}</td>
-                <td class="py-3 px-4 text-slate-400 text-[11px]">${p.date}</td>
-                <td class="py-3 px-4 text-right">
-                  <button onclick="editProduct('${p.id}')" class="text-slate-500 hover:text-slate-900 font-semibold text-xs">編輯</button>
+                  <button onclick="editProduct('${p.id}')" class="text-sky-600 hover:text-sky-800 font-semibold text-xs px-2 py-1 rounded hover:bg-sky-50 transition">
+                    <i class="fa-solid fa-pen-to-square"></i> 編輯
+                  </button>
                 </td>
               </tr>
             `;
@@ -1039,19 +932,18 @@
         }
       }
 
-      const totalPages = Math.ceil(filtered.length / store.pageSize) || 1;
-      const pageInfo = document.getElementById('paginationInfo');
-      if (pageInfo) pageInfo.textContent = `顯示 ${filtered.length ? startIdx + 1 : 0} 至 ${Math.min(startIdx + store.pageSize, filtered.length)} 筆，共 ${filtered.length} 筆`;
-      
-      const pageNum = document.getElementById('currentPageNum');
-      if (pageNum) pageNum.textContent = `${store.currentPage} / ${totalPages}`;
-      
+      const infoEl = document.getElementById('paginationInfo');
+      if (infoEl) infoEl.textContent = `顯示 ${total === 0 ? 0 : start + 1} 至 ${Math.min(start + store.pageSize, total)} 筆，共 ${total} 筆`;
+
+      const pageNumEl = document.getElementById('currentPageNum');
+      if (pageNumEl) pageNumEl.textContent = store.currentPage;
+
       const btnPrev = document.getElementById('btnPrevPage');
-      if (btnPrev) btnPrev.disabled = store.currentPage === 1;
-      
       const btnNext = document.getElementById('btnNextPage');
+      if (btnPrev) btnPrev.disabled = store.currentPage <= 1;
       if (btnNext) btnNext.disabled = store.currentPage >= totalPages;
     }
+    window.renderInventoryTable = renderInventoryTable;
 
     function sortTable(field) {
       if (store.sortField === field) {
@@ -1062,50 +954,378 @@
       }
       renderInventoryTable();
     }
+    window.sortTable = sortTable;
 
     function changePage(delta) {
       store.currentPage += delta;
       renderInventoryTable();
     }
+    window.changePage = changePage;
 
     function toggleMovementForm(type) {
       document.getElementById('movementType').value = type;
-      const btnInbound = document.getElementById('tabInboundForm');
-      const btnAdjust = document.getElementById('tabAdjustForm');
+      const tabIn = document.getElementById('tabInboundForm');
+      const tabAdj = document.getElementById('tabAdjustForm');
       const lblQty = document.getElementById('lblMovementQty');
-      const btnSubmit = document.getElementById('btnSubmitMovement');
+      const btnSub = document.getElementById('btnSubmitMovement');
 
       if (type === 'inbound') {
-        btnInbound.className = "flex-1 py-2 text-center rounded-lg bg-white shadow-sm text-slate-800";
-        btnAdjust.className = "flex-1 py-2 text-center rounded-lg text-slate-500 hover:text-slate-800";
+        tabIn.className = "flex-1 py-2 text-center rounded-lg bg-white font-bold text-xs shadow-sm text-slate-800";
+        tabAdj.className = "flex-1 py-2 text-center rounded-lg font-bold text-xs text-slate-500 hover:text-slate-800";
         lblQty.textContent = "入倉數量 *";
-        btnSubmit.innerHTML = `<i class="fa-solid fa-check"></i> <span>確認入倉</span>`;
+        btnSub.querySelector('span').textContent = "確認入倉";
       } else {
-        btnAdjust.className = "flex-1 py-2 text-center rounded-lg bg-white shadow-sm text-slate-800";
-        btnInbound.className = "flex-1 py-2 text-center rounded-lg text-slate-500 hover:text-slate-800";
-        lblQty.textContent = "調整後總數量 *";
-        btnSubmit.innerHTML = `<i class="fa-solid fa-rotate"></i> <span>確認調整</span>`;
+        tabAdj.className = "flex-1 py-2 text-center rounded-lg bg-white font-bold text-xs shadow-sm text-slate-800";
+        tabIn.className = "flex-1 py-2 text-center rounded-lg font-bold text-xs text-slate-500 hover:text-slate-800";
+        lblQty.textContent = "校正後總數量 *";
+        btnSub.querySelector('span').textContent = "確認調整數量";
       }
     }
+    window.toggleMovementForm = toggleMovementForm;
+
+    function renderMovementLogs() {
+      const container = document.getElementById('movementLogList');
+      if (!container) return;
+      if (store.movements.length === 0) {
+        container.innerHTML = '<p class="text-xs text-slate-400 py-4 text-center">目前無庫存異動紀錄</p>';
+        return;
+      }
+      container.innerHTML = store.movements.slice(0, 10).map(m => `
+        <div class="py-2.5 flex items-center justify-between text-xs">
+          <div>
+            <span class="font-bold text-slate-800">${m.productName}</span>
+            <p class="text-[11px] text-slate-400">${m.location} · ${m.timestamp}</p>
+          </div>
+          <span class="font-bold ${m.type === 'inbound' ? 'text-emerald-600' : 'text-sky-600'}">
+            ${m.type === 'inbound' ? '+' : '='}${m.qty}
+          </span>
+        </div>
+      `).join('');
+    }
+
+    function renderWithdrawals() {
+      const tbody = document.getElementById('withdrawalTableBody');
+      if (!tbody) return;
+      if (store.withdrawals.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-slate-400">目前無提取單數據</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = store.withdrawals.map(w => `
+        <tr class="hover:bg-slate-50 transition">
+          <td class="py-3 px-4 font-mono font-bold text-slate-800">${w.id}</td>
+          <td class="py-3 px-4">
+            <span class="font-bold text-slate-800">${w.applicant}</span>
+            <p class="text-[11px] text-slate-400">${w.purpose}</p>
+          </td>
+          <td class="py-3 px-4">
+            <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold ${w.status === 'completed' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'}">
+              ${w.status === 'completed' ? '已完成' : '已拒絕'}
+            </span>
+          </td>
+          <td class="py-3 px-4 text-slate-400">${w.date}</td>
+          <td class="py-3 px-4 text-right">
+            <button onclick="showToast('提取單詳細資料：${w.id}', 'info')" class="text-slate-600 hover:text-slate-900 text-xs font-semibold">檢視</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function renderLocations() {
+      const grid = document.getElementById('locationGrid');
+      if (!grid) return;
+      grid.innerHTML = store.locations.map(loc => {
+        const count = store.products.filter(p => p.location && p.location.includes(loc.name)).reduce((sum, p) => sum + p.stock, 0);
+        return `
+          <div class="bg-white p-5 rounded-2xl border border-slate-200/60 shadow-sm space-y-3">
+            <div class="flex items-center justify-between">
+              <div>
+                <h4 class="font-bold text-slate-900 text-sm">${loc.name}</h4>
+                <p class="text-[11px] text-slate-400">編號 ${loc.code}</p>
+              </div>
+              <button onclick="showToast('編輯貨位：${loc.name}', 'info')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-pen text-xs"></i></button>
+            </div>
+            <div class="flex items-baseline justify-between pt-2">
+              <span class="text-2xl font-black text-slate-900">${count}</span>
+              <span class="text-[11px] text-slate-400">${loc.capacity ? `容量上限 ${loc.capacity}` : '未設容量'}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderLogs() {
+      const container = document.getElementById('fullAuditLogs');
+      if (!container) return;
+      if (store.movements.length === 0) {
+        container.innerHTML = '<p class="text-xs text-slate-400 py-4">目前尚無操作紀錄</p>';
+        return;
+      }
+      container.innerHTML = store.movements.map(m => `
+        <div class="p-3 border-b border-slate-100 flex items-center justify-between text-xs">
+          <div>
+            <span class="font-bold text-slate-800">${m.user || '系統用戶'}</span>
+            <span class="text-slate-500"> 執行 ${m.type === 'inbound' ? '入倉' : '調整'} - ${m.productName} (${m.qty})</span>
+          </div>
+          <span class="text-[11px] text-slate-400">${m.timestamp}</span>
+        </div>
+      `).join('');
+    }
+
+    function editProduct(id) {
+      const prod = store.products.find(p => p.id === id);
+      if (!prod) return;
+      document.getElementById('modalProductTitle').textContent = '編輯貨品';
+      document.getElementById('editProductId').value = prod.id;
+      document.getElementById('prodId').value = prod.id;
+      document.getElementById('prodId').readOnly = true;
+      document.getElementById('prodName').value = prod.name;
+      document.getElementById('prodUnit').value = prod.unit || '個';
+      document.getElementById('prodMin').value = prod.min || 5;
+      document.getElementById('prodStock').value = prod.stock || 0;
+      document.getElementById('prodLocation').value = prod.location || '';
+      populateProdLocationSelect();
+      openModal('modal-add-product');
+    }
+    window.editProduct = editProduct;
 
     function populateMovementSelects() {
-      const prodSelect = document.getElementById('movementProduct');
-      if (prodSelect) {
-        prodSelect.innerHTML = `<option value="">選擇貨品...</option>` + store.products.map(p => `<option value="${p.id}">${p.id} · ${p.name}</option>`).join('');
+      const pSel = document.getElementById('movementProduct');
+      const lSel = document.getElementById('movementLocation');
+      if (pSel) {
+        pSel.innerHTML = store.products.map(p => `<option value="${p.id}">${p.id} - ${p.name}</option>`).join('');
       }
-
-      const locSelect = document.getElementById('movementLocation');
-      if (locSelect) {
-        locSelect.innerHTML = `<option value="">選擇倉庫及貨位...</option>` + store.locations.map(l => `<option value="${l.name}">${l.name}</option>`).join('');
+      if (lSel) {
+        lSel.innerHTML = store.locations.map(l => `<option value="${l.name}">${l.name}</option>`).join('');
       }
     }
+
+    function populateLabelSelect() {
+      const lSel = document.getElementById('labelSelectProduct');
+      if (lSel) {
+        lSel.innerHTML = store.products.map(p => `<option value="${p.id}">${p.id} - ${p.name}</option>`).join('');
+        generateBarcodePreview();
+      }
+    }
+
+    function populateProdLocationSelect() {
+      const select = document.getElementById('prodLocationSelect');
+      if (!select) return;
+      select.innerHTML = `<option value="">-- 請選擇現有貨位 --</option>` +
+        store.locations.map(l => `<option value="${l.name}">${l.name}</option>`).join('') +
+        `<option value="__CUSTOM__">✎ 手動自訂貨位...</option>`;
+    }
+    window.populateProdLocationSelect = populateProdLocationSelect;
+
+    function handleProdLocationSelectChange(val) {
+      const locInput = document.getElementById('prodLocation');
+      if (!locInput) return;
+      if (val && val !== '__CUSTOM__') {
+        locInput.value = val;
+      } else if (val === '__CUSTOM__') {
+        locInput.value = '';
+        locInput.focus();
+      }
+    }
+    window.handleProdLocationSelectChange = handleProdLocationSelectChange;
+
+    function generateBarcodePreview() {
+      const pId = document.getElementById('labelSelectProduct')?.value;
+      const prod = store.products.find(p => p.id === pId) || store.products[0];
+      if (prod) {
+        const bCode = document.getElementById('barcodeCode');
+        const bName = document.getElementById('barcodeName');
+        if (bCode) bCode.textContent = prod.id;
+        if (bName) bName.textContent = prod.name;
+      }
+    }
+    window.generateBarcodePreview = generateBarcodePreview;
+
+    function handleGlobalSearch(query) {
+      if (!query) return;
+      switchTab('inventory');
+      const searchInput = document.getElementById('inventorySearch');
+      if (searchInput) {
+        searchInput.value = query;
+        renderInventoryTable();
+      }
+    }
+    window.handleGlobalSearch = handleGlobalSearch;
+
+    function exportToCSV() {
+      if (store.products.length === 0) {
+        showToast("無資料可供匯出！", "error");
+        return;
+      }
+      let csv = "貨品編號,貨品名稱,貨位,存量,預警門檻,單位\n";
+      store.products.forEach(p => {
+        csv += `"${p.id}","${p.name}","${p.location || ''}",${p.stock},${p.min},"${p.unit || '個'}"\n`;
+      });
+      const blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `inventory_export_${new Date().toISOString().slice(0,10)}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast("已成功將庫存數據匯出為 CSV 檔！", "success");
+    }
+    window.exportToCSV = exportToCSV;
+
+    function downloadCSVTemplate() {
+      const sample = "貨品編號,貨品名稱,貨位,存量,預警門檻,單位\n0314-015,Canter繼電器,細倉1樓 / 3-3,50,10,個\n0314-016,煞車片,地下,12,5,塊";
+      const blob = new Blob(["\ufeff" + sample], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "inventory_import_template.csv";
+      link.click();
+    }
+    window.downloadCSVTemplate = downloadCSVTemplate;
+
+    function parseCSVFile(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        document.getElementById('csvTextArea').value = evt.target.result;
+      };
+      reader.readAsText(file);
+    }
+    window.parseCSVFile = parseCSVFile;
+
+    async function initAuth() {
+      try {
+        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+          await signInWithCustomToken(auth, __initial_auth_token);
+        } else {
+          await signInAnonymously(auth);
+        }
+      } catch (err) {
+        console.error("Auth error:", err);
+        const statusEl = document.querySelector('.sidebar-text span');
+        if (statusEl) statusEl.textContent = `本地備用模式`;
+        showToast("Firebase 驗證未完成: " + err.message + "（已啟用本地備用）", "error");
+      }
+    }
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        currentUser = user;
+        const statusEl = document.querySelector('.sidebar-text span');
+        if (statusEl) statusEl.textContent = `雲端即時連線 (${user.uid.slice(0, 5)}...)`;
+        setupRealtimeListeners();
+      }
+    });
+
+    function setupRealtimeListeners() {
+      onSnapshot(productsColRef, async (snapshot) => {
+        if (snapshot.empty && currentUser) {
+          for (const item of defaultProducts) {
+            try { await setDoc(doc(productsColRef, item.id), item); } catch (e) {}
+          }
+          return;
+        }
+        if (!snapshot.empty) {
+          store.products = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+          renderOverview();
+          renderInventoryTable();
+          populateMovementSelects();
+          populateLabelSelect();
+        }
+      }, (err) => {
+        console.error("Products Sync Error:", err);
+      });
+
+      onSnapshot(locationsColRef, async (snapshot) => {
+        if (snapshot.empty && currentUser) {
+          for (const loc of defaultLocations) {
+            try { await addDoc(locationsColRef, loc); } catch (e) {}
+          }
+          return;
+        }
+        if (!snapshot.empty) {
+          store.locations = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          renderLocations();
+        }
+      }, (err) => {
+        console.error("Locations Sync Error:", err);
+      });
+
+      onSnapshot(withdrawalsColRef, async (snapshot) => {
+        if (snapshot.empty && currentUser) {
+          for (const item of defaultWithdrawals) {
+            try { await addDoc(withdrawalsColRef, item); } catch (e) {}
+          }
+          return;
+        }
+        if (!snapshot.empty) {
+          const data = snapshot.docs.map(doc => ({ docId: doc.id, ...doc.data() }));
+          data.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+          store.withdrawals = data;
+          renderWithdrawals();
+          renderOverview();
+        }
+      }, (err) => {
+        console.error("Withdrawals Sync Error:", err);
+      });
+
+      onSnapshot(movementsColRef, (snapshot) => {
+        if (!snapshot.empty) {
+          const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          data.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+          store.movements = data;
+          renderMovementLogs();
+          renderLogs();
+        }
+      }, (err) => {
+        console.error("Movements Sync Error:", err);
+      });
+    }
+
+    async function handleSaveProduct(e) {
+      e.preventDefault();
+      try {
+        const editId = document.getElementById('editProductId').value;
+        const id = document.getElementById('prodId').value.trim();
+        const name = document.getElementById('prodName').value.trim();
+        const location = document.getElementById('prodLocation').value.trim();
+        const unit = document.getElementById('prodUnit').value.trim();
+        const stock = parseInt(document.getElementById('prodStock').value) || 0;
+        const min = parseInt(document.getElementById('prodMin').value) || 0;
+        const updatedDate = new Date().toLocaleDateString('zh-TW');
+
+        const productData = { id, name, location, unit, stock, min, date: updatedDate };
+
+        const existingIdx = store.products.findIndex(p => p.id === (editId || id));
+        if (existingIdx >= 0) {
+          store.products[existingIdx] = productData;
+        } else {
+          store.products.push(productData);
+        }
+        renderOverview();
+        renderInventoryTable();
+        populateMovementSelects();
+        populateLabelSelect();
+        closeModal('modal-add-product');
+
+        if (currentUser) {
+          if (editId) {
+            await setDoc(doc(productsColRef, editId), productData, { merge: true });
+            showToast(`貨品 [${id}] 雲端更新成功！`, 'success');
+          } else {
+            await setDoc(doc(productsColRef, id), productData);
+            showToast(`新增貨品 [${id}] 成功！`, 'success');
+          }
+        } else {
+          showToast(`貨品已於本地儲存 (Firebase 離線)`, 'success');
+        }
+      } catch (err) {
+        showToast("儲存貨品失敗: " + err.message, "error");
+      }
+    }
+    window.handleSaveProduct = handleSaveProduct;
 
     async function handleMovementSubmit(e) {
       e.preventDefault();
-      if (!currentUser) {
-        showToast("登入授權中，請稍後再試", "error");
-        return;
-      }
       try {
         const type = document.getElementById('movementType').value;
         const prodId = document.getElementById('movementProduct').value;
@@ -1118,323 +1338,107 @@
         const newStock = type === 'inbound' ? (prod.stock + qty) : qty;
         const updatedDate = new Date().toLocaleDateString('zh-TW');
 
-        await updateDoc(doc(productsColRef, prod.id), {
-          stock: newStock,
-          location: locName,
-          date: updatedDate
-        });
+        prod.stock = newStock;
+        prod.location = locName;
+        prod.date = updatedDate;
 
-        await addDoc(movementsColRef, {
+        const movementRecord = {
           type: type,
           productName: prod.name,
           location: locName,
           qty: qty,
           timestamp: new Date().toLocaleString('zh-TW'),
-          user: `用戶 (${currentUser.uid.slice(0, 5)})`,
+          user: currentUser ? `用戶 (${currentUser.uid.slice(0, 5)})` : '本地用戶',
           createdAt: Date.now()
-        });
+        };
+        store.movements.unshift(movementRecord);
 
-        showToast(type === 'inbound' ? `成功入倉 ${qty} 個！ (已實時同步雲端)` : `庫存已校正為 ${qty}！`, 'success');
+        renderOverview();
+        renderInventoryTable();
+        renderMovementLogs();
         document.getElementById('movementForm').reset();
+
+        if (currentUser) {
+          await updateDoc(doc(productsColRef, prod.id), {
+            stock: newStock,
+            location: locName,
+            date: updatedDate
+          });
+          await addDoc(movementsColRef, movementRecord);
+          showToast(type === 'inbound' ? `成功入倉 ${qty} 個！` : `庫存已校正為 ${qty}！`, 'success');
+        } else {
+          showToast(`已於本地更新`, 'success');
+        }
       } catch (err) {
-        console.error("Movement Submit Error:", err);
         showToast(err.message || "更新失敗", 'error');
       }
     }
-
-    function renderMovementLogs() {
-      const logContainer = document.getElementById('movementLogList');
-      if (logContainer) {
-        if (store.movements.length === 0) {
-          logContainer.innerHTML = `<p class="text-xs text-slate-400 py-4 text-center">暫無庫存異動記錄</p>`;
-        } else {
-          logContainer.innerHTML = store.movements.map(m => `
-            <div class="pt-3 first:pt-0 flex items-center justify-between">
-              <div class="flex items-center space-x-3">
-                <div class="w-8 h-8 rounded-full ${m.type === 'inbound' ? 'bg-emerald-50 text-emerald-600' : 'bg-indigo-50 text-indigo-600'} flex items-center justify-center text-xs">
-                  <i class="fa-solid ${m.type === 'inbound' ? 'fa-arrow-down' : 'fa-rotate'}"></i>
-                </div>
-                <div>
-                  <p class="font-semibold text-xs text-slate-900">${m.productName}</p>
-                  <p class="text-[10px] text-slate-400">${m.location} · ${m.timestamp}</p>
-                </div>
-              </div>
-              <span class="font-bold text-xs ${m.type === 'inbound' ? 'text-emerald-600' : 'text-indigo-600'}">
-                ${m.type === 'inbound' ? '+' : '='}${m.qty}
-              </span>
-            </div>
-          `).join('');
-        }
-      }
-    }
-
-    function renderWithdrawals() {
-      const tbody = document.getElementById('withdrawalTableBody');
-      if (tbody) {
-        tbody.innerHTML = store.withdrawals.map(w => {
-          let badgeClass = "bg-slate-100 text-slate-600";
-          let statusTxt = "待處理";
-          if (w.status === 'completed') { badgeClass = "bg-emerald-50 text-emerald-600"; statusTxt = "已完成"; }
-          if (w.status === 'rejected') { badgeClass = "bg-rose-50 text-rose-600"; statusTxt = "已拒絕"; }
-
-          return `
-            <tr class="hover:bg-slate-50 transition">
-              <td class="py-3 px-4 font-bold text-slate-900">${w.id}</td>
-              <td class="py-3 px-4">
-                <p class="font-semibold text-slate-800">${w.applicant}</p>
-                <p class="text-[11px] text-slate-400">${w.purpose}</p>
-              </td>
-              <td class="py-3 px-4"><span class="px-2.5 py-1 rounded-full text-[10px] font-bold ${badgeClass}">${statusTxt}</span></td>
-              <td class="py-3 px-4 text-slate-400 text-[11px]">${w.date}</td>
-              <td class="py-3 px-4 text-right">
-                <button onclick="showToast('提取單詳細資料調閱中...', 'success')" class="text-slate-500 hover:text-slate-900 font-semibold text-xs inline-flex items-center gap-1">
-                  <i class="fa-regular fa-eye text-xs"></i> 檢視
-                </button>
-              </td>
-            </tr>
-          `;
-        }).join('');
-      }
-    }
+    window.handleMovementSubmit = handleMovementSubmit;
 
     async function handleCreateWithdrawal(e) {
       e.preventDefault();
-      if (!currentUser) return;
       try {
         const applicant = document.getElementById('withApplicant').value;
         const purpose = document.getElementById('withPurpose').value;
         const newId = `WO-${new Date().toISOString().slice(0,10).replace(/-/g,'')}-${Math.floor(100+Math.random()*900)}`;
 
-        await addDoc(withdrawalsColRef, {
+        const newWithdrawal = {
           id: newId,
           applicant: applicant,
           purpose: purpose,
           status: 'completed',
           date: new Date().toLocaleDateString('zh-TW'),
           createdAt: Date.now()
-        });
+        };
 
+        store.withdrawals.unshift(newWithdrawal);
+        renderWithdrawals();
+        renderOverview();
         closeModal('modal-create-withdrawal');
-        showToast("提取單已成功建立並寫入雲端！", 'success');
+
+        if (currentUser) {
+          await addDoc(withdrawalsColRef, newWithdrawal);
+          showToast("提取單已成功建立！", 'success');
+        } else {
+          showToast("提取單已於本地建立", 'success');
+        }
       } catch (err) {
         showToast("建立提取單失敗: " + err.message, "error");
       }
     }
-
-    function renderLocations() {
-      const grid = document.getElementById('locationGrid');
-      if (grid) {
-        grid.innerHTML = store.locations.map(loc => {
-          const actualItems = store.products.filter(p => (p.location || '').includes(loc.name)).reduce((acc, p) => acc + (p.stock || 0), 0);
-
-          return `
-            <div class="bg-white p-5 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between hover:border-slate-300 transition group">
-              <div class="flex items-start justify-between">
-                <div>
-                  <h4 class="font-bold text-slate-900 text-sm">${loc.name}</h4>
-                  <p class="text-[11px] text-slate-400 mt-0.5">編號 ${loc.code}</p>
-                </div>
-                <button onclick="showToast('貨位設定編輯', 'success')" class="text-slate-300 group-hover:text-slate-600 transition">
-                  <i class="fa-solid fa-pen text-xs"></i>
-                </button>
-              </div>
-              <div class="mt-6 flex items-baseline justify-between">
-                <div>
-                  <span class="text-2xl font-extrabold text-slate-900">${actualItems}</span>
-                  <span class="text-xs text-slate-400 ml-1">現存數量</span>
-                </div>
-                <span class="text-[11px] text-slate-400 font-medium">${loc.capacity ? `容量上限 ${loc.capacity}` : '未設容量'}</span>
-              </div>
-            </div>
-          `;
-        }).join('');
-      }
-    }
+    window.handleCreateWithdrawal = handleCreateWithdrawal;
 
     async function handleAddLocation(e) {
       e.preventDefault();
-      if (!currentUser) return;
       try {
         const name = document.getElementById('locName').value;
         const code = document.getElementById('locCode').value;
         const cap = document.getElementById('locCapacity').value;
 
-        await addDoc(locationsColRef, {
+        const newLoc = {
           name: name,
           code: code,
           capacity: cap ? parseInt(cap) : null
-        });
+        };
 
+        store.locations.push(newLoc);
+        renderLocations();
         closeModal('modal-add-location');
-        showToast(`貨位 [${name}] 新增成功！`, 'success');
+
+        if (currentUser) {
+          await addDoc(locationsColRef, newLoc);
+          showToast(`貨位 [${name}] 新增成功！`, 'success');
+        } else {
+          showToast(`貨位 [${name}] 已新增於本地`, 'success');
+        }
       } catch (err) {
         showToast("新增貨位失敗: " + err.message, "error");
       }
     }
-
-    async function handleSaveProduct(e) {
-      e.preventDefault();
-      if (!currentUser) return;
-      try {
-        const editId = document.getElementById('editProductId').value;
-        const id = document.getElementById('prodId').value;
-        const name = document.getElementById('prodName').value;
-        const location = document.getElementById('prodLocation').value;
-        const unit = document.getElementById('prodUnit').value;
-        const stock = parseInt(document.getElementById('prodStock').value);
-        const min = parseInt(document.getElementById('prodMin').value);
-        const updatedDate = new Date().toLocaleDateString('zh-TW');
-
-        const productData = { id, name, location, unit, stock, min, date: updatedDate };
-
-        if (editId) {
-          await setDoc(doc(productsColRef, editId), productData, { merge: true });
-          showToast(`貨品 [${id}] 雲端更新成功！`, 'success');
-        } else {
-          await setDoc(doc(productsColRef, id), productData);
-          showToast(`新增貨品 [${id}] 成功！`, 'success');
-        }
-
-        closeModal('modal-add-product');
-      } catch (err) {
-        showToast("儲存貨品失敗: " + err.message, "error");
-      }
-    }
-
-    function editProduct(id) {
-      const prod = store.products.find(p => p.id === id);
-      if (!prod) return;
-
-      document.getElementById('modalProductTitle').textContent = "編輯貨品資訊";
-      document.getElementById('editProductId').value = prod.id;
-      document.getElementById('prodId').value = prod.id;
-      document.getElementById('prodId').disabled = true;
-      document.getElementById('prodName').value = prod.name;
-      document.getElementById('prodUnit').value = prod.unit;
-      document.getElementById('prodStock').value = prod.stock;
-      document.getElementById('prodMin').value = prod.min;
-      document.getElementById('prodLocation').value = prod.location || '';
-
-      populateProdLocationSelect(prod.location);
-
-      openModal('modal-add-product');
-    }
-
-    function populateProdLocationSelect(currentLocationVal = '') {
-      const locSelect = document.getElementById('prodLocationSelect');
-      if (!locSelect) return;
-
-      let optionsHTML = `<option value="">-- 快速選擇現有貨位 --</option>`;
-      let hasMatch = false;
-
-      store.locations.forEach(l => {
-        const selected = l.name === currentLocationVal ? 'selected' : '';
-        if (l.name === currentLocationVal) hasMatch = true;
-        optionsHTML += `<option value="${l.name}" ${selected}>${l.name}</option>`;
-      });
-
-      optionsHTML += `<option value="__custom__" ${(!hasMatch && currentLocationVal) ? 'selected' : ''}>✎ 手動自訂貨位...</option>`;
-      locSelect.innerHTML = optionsHTML;
-    }
-
-    function handleProdLocationSelectChange(val) {
-      const inputEl = document.getElementById('prodLocation');
-      if (!inputEl) return;
-      if (val && val !== '__custom__') {
-        inputEl.value = val;
-      } else if (val === '__custom__') {
-        inputEl.value = '';
-        inputEl.focus();
-      }
-    }
-
-    function populateLabelSelect() {
-      const select = document.getElementById('labelSelectProduct');
-      if (select) {
-        select.innerHTML = store.products.map(p => `<option value="${p.id}">${p.id} - ${p.name}</option>`).join('');
-        generateBarcodePreview();
-      }
-    }
-
-    function generateBarcodePreview() {
-      const select = document.getElementById('labelSelectProduct');
-      if (!select) return;
-      const selectedId = select.value;
-      const prod = store.products.find(p => p.id === selectedId);
-
-      const codeEl = document.getElementById('barcodeCode');
-      const nameEl = document.getElementById('barcodeName');
-
-      if (prod) {
-        if (codeEl) codeEl.textContent = prod.id;
-        if (nameEl) nameEl.textContent = prod.name;
-      }
-    }
-
-    function renderLogs() {
-      const container = document.getElementById('fullAuditLogs');
-      if (container) {
-        if (store.movements.length === 0) {
-          container.innerHTML = `<p class="text-xs text-slate-400 py-6 text-center">目前無審計與操作紀錄</p>`;
-        } else {
-          container.innerHTML = store.movements.map(m => `
-            <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100">
-              <div class="flex items-center space-x-3">
-                <i class="fa-solid fa-clock-rotate-left text-slate-400 text-sm"></i>
-                <div>
-                  <p class="font-bold text-slate-800 text-xs">${m.user} 執行了 ${m.type === 'inbound' ? '入倉' : '庫存調整'}</p>
-                  <p class="text-[10px] text-slate-400">${m.productName} (${m.location}) · 數量: ${m.qty}</p>
-                </div>
-              </div>
-              <span class="text-[10px] text-slate-400 font-mono">${m.timestamp}</span>
-            </div>
-          `).join('');
-        }
-      }
-    }
-
-    function handleGlobalSearch(val) {
-      if (val.trim().length > 0) {
-        switchTab('inventory');
-        const input = document.getElementById('inventorySearch');
-        if (input) input.value = val;
-        renderInventoryTable();
-      }
-    }
-
-    function exportToCSV() {
-      showToast("已成功將庫存結餘數據匯出為 CSV 檔！", "success");
-    }
-
-    function downloadCSVTemplate() {
-      const headers = "貨品編號,貨品名稱,貨位,存量,預警門檻,單位\n";
-      const sample = "0314-015,Canter繼電器,細倉1樓 / 3-3,50,10,個\n0314-016,煞車片,地下,12,5,塊";
-      const blob = new Blob(["\uFEFF" + headers + sample], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.setAttribute("download", "倉儲貨品匯入範例檔.csv");
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
-
-    function parseCSVFile(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function(evt) {
-        document.getElementById('csvTextArea').value = evt.target.result;
-      };
-      reader.readAsText(file);
-    }
+    window.handleAddLocation = handleAddLocation;
 
     async function handleCSVImport(e) {
       e.preventDefault();
-      if (!currentUser) {
-        showToast("請先等待 Firebase 雲端驗證完成", "error");
-        return;
-      }
-
       const rawText = document.getElementById('csvTextArea').value.trim();
       if (!rawText) {
         showToast("請提供 CSV 內容或選擇檔案！", "error");
@@ -1452,37 +1456,33 @@
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i].trim();
         if (!line) continue;
-        
-        // 自動忽略標頭列
         if (i === 0 && (line.includes("貨品編號") || line.includes("ID") || line.includes("id"))) continue;
 
         const cols = line.split(',').map(c => c.trim().replace(/^"(.*)"$/, '$1'));
         if (cols.length < 2) continue;
 
         const [id, name, location = '細倉1樓', stockStr = '0', minStr = '5', unit = '個'] = cols;
-
-        if (!id || !name) {
-          errorCount++;
-          continue;
-        }
+        if (!id || !name) { errorCount++; continue; }
 
         const stock = parseInt(stockStr) || 0;
         const min = parseInt(minStr) || 5;
 
-        try {
-          await setDoc(doc(productsColRef, id), {
-            id,
-            name,
-            location: location || '未分配',
-            stock,
-            min,
-            unit: unit || '個',
-            date: updatedDate
-          }, { merge: true });
+        const item = { id, name, location: location || '未分配', stock, min, unit: unit || '個', date: updatedDate };
+
+        const idx = store.products.findIndex(p => p.id === id);
+        if (idx >= 0) store.products[idx] = item;
+        else store.products.push(item);
+
+        if (currentUser) {
+          try {
+            await setDoc(doc(productsColRef, id), item, { merge: true });
+            successCount++;
+          } catch (err) {
+            console.error(`匯入失敗 (第 ${i+1} 行):`, err);
+            errorCount++;
+          }
+        } else {
           successCount++;
-        } catch (err) {
-          console.error(`匯入失敗 (第 ${i+1} 行):`, err);
-          errorCount++;
         }
       }
 
@@ -1491,36 +1491,31 @@
       document.getElementById('csvTextArea').value = '';
       document.getElementById('csvFileInput').value = '';
 
+      renderOverview();
+      renderInventoryTable();
+      populateMovementSelects();
+      populateLabelSelect();
+
       if (successCount > 0) {
-        showToast(`成功批次匯入 ${successCount} 筆貨品資料！(已實時同步雲端)`, 'success');
+        showToast(`成功批次匯入 ${successCount} 筆數據！`, 'success');
       } else {
-        showToast("匯入失敗，請檢查資料格式是否正確", 'error');
+        showToast("匯入失敗，請檢查資料格式", 'error');
       }
     }
+    window.handleCSVImport = handleCSVImport;
 
-    window.toggleSidebar = toggleSidebar;
-    window.switchTab = switchTab;
-    window.showToast = showToast;
-    window.openModal = openModal;
-    window.closeModal = closeModal;
     window.renderOverview = renderOverview;
     window.renderInventoryTable = renderInventoryTable;
     window.sortTable = sortTable;
     window.changePage = changePage;
     window.toggleMovementForm = toggleMovementForm;
-    window.handleMovementSubmit = handleMovementSubmit;
-    window.handleCreateWithdrawal = handleCreateWithdrawal;
-    window.handleAddLocation = handleAddLocation;
-    window.handleSaveProduct = handleSaveProduct;
     window.editProduct = editProduct;
     window.populateProdLocationSelect = populateProdLocationSelect;
     window.handleProdLocationSelectChange = handleProdLocationSelectChange;
     window.generateBarcodePreview = generateBarcodePreview;
     window.handleGlobalSearch = handleGlobalSearch;
-    window.exportToCSV = exportToCSV;
     window.downloadCSVTemplate = downloadCSVTemplate;
     window.parseCSVFile = parseCSVFile;
-    window.handleCSVImport = handleCSVImport;
 
     window.onload = function() {
       initAuth();
