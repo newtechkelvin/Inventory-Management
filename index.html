@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>庫存及進銷存管理系統 - Inventory Management</title>
+  <title>庫存及進銷存管理系統 - Inventory Management System</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Font Awesome Icons -->
@@ -16,7 +16,7 @@
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen flex">
 
-  <!-- 左側導航列 Sidebar -->
+  <!-- 1. 左側導航列 (Sidebar) -->
   <aside class="w-64 bg-slate-800 border-r border-slate-700 flex flex-col justify-between hidden md:flex">
     <div>
       <div class="h-16 flex items-center justify-between px-6 border-b border-slate-700">
@@ -37,10 +37,6 @@
           <span>出入庫明細</span>
         </a>
         <a href="#" class="flex items-center space-x-3 px-4 py-3 text-slate-400 hover:bg-slate-700/50 hover:text-slate-200 rounded-lg transition font-medium">
-          <i class="fa-solid fa-truck-field w-5"></i>
-          <span>供應商管理</span>
-        </a>
-        <a href="#" class="flex items-center space-x-3 px-4 py-3 text-slate-400 hover:bg-slate-700/50 hover:text-slate-200 rounded-lg transition font-medium">
           <i class="fa-solid fa-gear w-5"></i>
           <span>系統設定</span>
         </a>
@@ -59,28 +55,28 @@
     </div>
   </aside>
 
-  <!-- 主內容區塊 Main Section -->
+  <!-- 2. 主內容區塊 (Main Section) -->
   <main class="flex-1 flex flex-col overflow-hidden">
     <!-- Top Header -->
     <header class="h-16 bg-slate-800/50 border-b border-slate-700 flex items-center justify-between px-6 backdrop-blur">
-      <h1 class="text-xl font-bold text-white">庫存管理 Dashbaord</h1>
+      <h1 class="text-xl font-bold text-white">庫存管理 Dashboard</h1>
       <div class="flex items-center space-x-4">
-        <button class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-2">
+        <button onclick="openAddProductModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-2">
           <i class="fa-solid fa-plus"></i>
           <span>新增商品</span>
         </button>
       </div>
     </header>
 
-    <!-- Main Content Body -->
+    <!-- Content Body -->
     <div class="flex-1 overflow-y-auto p-6 space-y-6">
       
-      <!-- 統計卡片 Stats Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <!-- 統計卡片 Dashboard Metrics -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div class="bg-slate-800 border border-slate-700 p-5 rounded-xl flex items-center justify-between">
           <div>
             <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">總商品 SKU 數</p>
-            <h3 class="text-2xl font-bold text-white mt-1">128</h3>
+            <h3 id="statTotalSKUs" class="text-2xl font-bold text-white mt-1">--</h3>
           </div>
           <div class="p-3 bg-blue-500/10 text-blue-400 rounded-lg">
             <i class="fa-solid fa-box text-xl"></i>
@@ -90,7 +86,7 @@
         <div class="bg-slate-800 border border-slate-700 p-5 rounded-xl flex items-center justify-between">
           <div>
             <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">總庫存價值 (HKD)</p>
-            <h3 class="text-2xl font-bold text-white mt-1">$248,500</h3>
+            <h3 id="statTotalValue" class="text-2xl font-bold text-white mt-1">$0.00</h3>
           </div>
           <div class="p-3 bg-emerald-500/10 text-emerald-400 rounded-lg">
             <i class="fa-solid fa-coins text-xl"></i>
@@ -100,20 +96,10 @@
         <div class="bg-slate-800 border border-slate-700 p-5 rounded-xl flex items-center justify-between">
           <div>
             <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">低庫存預警</p>
-            <h3 class="text-2xl font-bold text-rose-400 mt-1">3 件商品</h3>
+            <h3 id="statLowStock" class="text-2xl font-bold text-rose-400 mt-1">0 件商品</h3>
           </div>
           <div class="p-3 bg-rose-500/10 text-rose-400 rounded-lg">
             <i class="fa-solid fa-triangle-exclamation text-xl"></i>
-          </div>
-        </div>
-
-        <div class="bg-slate-800 border border-slate-700 p-5 rounded-xl flex items-center justify-between">
-          <div>
-            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">本月出庫總量</p>
-            <h3 class="text-2xl font-bold text-white mt-1">1,420</h3>
-          </div>
-          <div class="p-3 bg-purple-500/10 text-purple-400 rounded-lg">
-            <i class="fa-solid fa-truck-ramp-box text-xl"></i>
           </div>
         </div>
       </div>
@@ -122,18 +108,15 @@
       <div class="bg-slate-800 border border-slate-700 p-4 rounded-xl flex flex-col md:flex-row gap-4 items-center justify-between">
         <div class="relative w-full md:w-80">
           <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400"></i>
-          <input type="text" placeholder="搜尋商品名稱或 SKU..." class="w-full pl-10 pr-4 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-slate-200 focus:outline-none focus:border-indigo-500">
+          <input type="text" id="searchInput" oninput="renderTable()" placeholder="搜尋商品名稱或 SKU..." class="w-full pl-10 pr-4 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-slate-200 focus:outline-none focus:border-indigo-500">
         </div>
         <div class="flex gap-3 w-full md:w-auto">
-          <select class="bg-slate-900 border border-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-500">
+          <select id="categoryFilter" onchange="renderTable()" class="bg-slate-900 border border-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-500">
             <option value="">所有商品類別</option>
-            <option value="electronics">電子產品</option>
-            <option value="accessories">配件數碼</option>
+            <option value="電子產品">電子產品</option>
+            <option value="配件數碼">配件數碼</option>
+            <option value="生活用品">生活用品</option>
           </select>
-          <button class="bg-slate-700 hover:bg-slate-600 text-slate-200 px-4 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-2">
-            <i class="fa-solid fa-file-export"></i>
-            <span>匯出 CSV</span>
-          </button>
         </div>
       </div>
 
@@ -150,73 +133,268 @@
               <th class="py-3 px-4 text-right">操作</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-slate-700/60">
-            <!-- Row 1 (Normal) -->
-            <tr class="hover:bg-slate-700/30 transition">
-              <td class="py-4 px-4">
-                <div class="font-semibold text-white">無線藍芽耳機 A1</div>
-                <div class="text-xs text-slate-500">SKU: EAR-BLU-01</div>
-              </td>
-              <td class="py-4 px-4"><span class="bg-slate-700 text-slate-300 text-xs px-2.5 py-1 rounded-md">電子產品</span></td>
-              <td class="py-4 px-4">
-                <div class="text-white font-medium">$499.00</div>
-                <div class="text-xs text-slate-500">成本: $250.00</div>
-              </td>
-              <td class="py-4 px-4">
-                <div class="font-semibold text-white">45 個</div>
-                <div class="text-xs text-slate-400">預警線: 10</div>
-              </td>
-              <td class="py-4 px-4">
-                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400">
-                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> 庫存充裕
-                </span>
-              </td>
-              <td class="py-4 px-4 text-right space-x-2">
-                <button class="text-indigo-400 hover:text-indigo-300 font-medium text-xs">出/入庫</button>
-                <button class="text-slate-400 hover:text-slate-200 font-medium text-xs">編輯</button>
-              </td>
-            </tr>
-
-            <!-- Row 2 (Low Stock Warning) -->
-            <tr class="hover:bg-slate-700/30 transition bg-rose-950/10">
-              <td class="py-4 px-4">
-                <div class="font-semibold text-white">USB-C 快充線 2M</div>
-                <div class="text-xs text-slate-500">SKU: CAB-USBC-02</div>
-              </td>
-              <td class="py-4 px-4"><span class="bg-slate-700 text-slate-300 text-xs px-2.5 py-1 rounded-md">配件數碼</span></td>
-              <td class="py-4 px-4">
-                <div class="text-white font-medium">$79.00</div>
-                <div class="text-xs text-slate-500">成本: $20.00</div>
-              </td>
-              <td class="py-4 px-4">
-                <div class="font-semibold text-rose-400">4 個</div>
-                <div class="text-xs text-slate-400">預警線: 15</div>
-              </td>
-              <td class="py-4 px-4">
-                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-rose-500/10 text-rose-400">
-                  <span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span> 低於安全庫存
-                </span>
-              </td>
-              <td class="py-4 px-4 text-right space-x-2">
-                <button class="text-indigo-400 hover:text-indigo-300 font-medium text-xs">出/入庫</button>
-                <button class="text-slate-400 hover:text-slate-200 font-medium text-xs">編輯</button>
-              </td>
-            </tr>
+          <tbody id="inventoryTbody" class="divide-y divide-slate-700/60">
+            <!-- 數據將由 JavaScript 動態渲染 -->
           </tbody>
         </table>
-
-        <!-- Table Footer / Pagination -->
-        <div class="p-4 border-t border-slate-700 flex items-center justify-between text-xs text-slate-400">
-          <span>顯示 1 至 2 項，共 128 項</span>
-          <div class="flex space-x-2">
-            <button class="px-3 py-1 bg-slate-700 hover:bg-slate-600 rounded text-slate-300 disabled:opacity-50">上一頁</button>
-            <button class="px-3 py-1 bg-slate-700 hover:bg-slate-600 rounded text-slate-300">下一頁</button>
-          </div>
-        </div>
       </div>
 
     </div>
   </main>
 
+  <!-- 3. 出入庫 (Stock Transaction) Modal 彈窗 -->
+  <div id="txnModal" class="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-slate-800 border border-slate-700 w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden">
+      
+      <div class="bg-slate-800/80 px-6 py-4 border-b border-slate-700 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <div class="p-2 bg-indigo-600/20 text-indigo-400 rounded-lg">
+            <i class="fa-solid fa-arrow-right-arrow-left"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-white">商品出入庫操作</h3>
+            <p id="modalProductName" class="text-xs text-slate-400">商品名稱：--</p>
+          </div>
+        </div>
+        <button onclick="closeTxnModal()" class="text-slate-400 hover:text-white transition p-1">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <form id="txnForm" onsubmit="submitTxnForm(event)" class="p-6 space-y-4">
+        <input type="hidden" id="modalProductId" value="">
+        <input type="hidden" id="modalCurrentStock" value="0">
+
+        <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-700/60 flex justify-between items-center text-xs">
+          <span class="text-slate-400">當前庫存量：</span>
+          <span id="modalStockDisplay" class="font-bold text-white text-sm">0 個</span>
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-slate-300 mb-2">異動類型 <span class="text-rose-400">*</span></label>
+          <div class="grid grid-cols-3 gap-2">
+            <label class="cursor-pointer">
+              <input type="radio" name="txnType" value="IN" class="peer sr-only" checked onchange="updateStockPreview()">
+              <div class="p-2 text-center rounded-lg border border-slate-700 bg-slate-900/40 text-slate-300 peer-checked:border-emerald-500 peer-checked:bg-emerald-500/10 peer-checked:text-emerald-400 text-xs font-semibold transition">
+                <i class="fa-solid fa-circle-down mr-1"></i> 📥 進貨入庫
+              </div>
+            </label>
+            <label class="cursor-pointer">
+              <input type="radio" name="txnType" value="OUT" class="peer sr-only" onchange="updateStockPreview()">
+              <div class="p-2 text-center rounded-lg border border-slate-700 bg-slate-900/40 text-slate-300 peer-checked:border-rose-500 peer-checked:bg-rose-500/10 peer-checked:text-rose-400 text-xs font-semibold transition">
+                <i class="fa-solid fa-circle-up mr-1"></i> 📤 銷售出庫
+              </div>
+            </label>
+            <label class="cursor-pointer">
+              <input type="radio" name="txnType" value="ADJUST" class="peer sr-only" onchange="updateStockPreview()">
+              <div class="p-2 text-center rounded-lg border border-slate-700 bg-slate-900/40 text-slate-300 peer-checked:border-amber-500 peer-checked:bg-amber-500/10 peer-checked:text-amber-400 text-xs font-semibold transition">
+                <i class="fa-solid fa-sliders mr-1"></i> ⚖️ 盤點調整
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div>
+          <div class="flex justify-between items-center mb-1">
+            <label for="txnQuantity" class="text-xs font-medium text-slate-300">異動數量 <span class="text-rose-400">*</span></label>
+            <span id="stockPreviewText" class="text-xs text-indigo-400 font-medium">預計更新後庫存：--</span>
+          </div>
+          <input type="number" id="txnQuantity" required min="1" placeholder="請輸入數量" oninput="updateStockPreview()" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-indigo-500">
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div>
+            <label for="txnHandler" class="block text-xs font-medium text-slate-300 mb-1">經手人</label>
+            <input type="text" id="txnHandler" value="Admin User" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-indigo-500">
+          </div>
+          <div>
+            <label for="txnRemark" class="block text-xs font-medium text-slate-300 mb-1">備註 / 單號</label>
+            <input type="text" id="txnRemark" placeholder="例：PO-889 採購入庫" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-indigo-500">
+          </div>
+        </div>
+
+        <div class="pt-3 border-t border-slate-700 flex justify-end space-x-3">
+          <button type="button" onclick="closeTxnModal()" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-xs font-medium transition">
+            取消
+          </button>
+          <button type="submit" id="submitBtn" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-medium transition flex items-center space-x-1">
+            <i class="fa-solid fa-check"></i>
+            <span>確認異動</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 4. JavaScript 業務邏輯與 Mock / Firebase 串接 -->
+  <script type="module">
+    // 本地預設 Mock 數據 (在未填寫 Firebase Config 時做備用運作)
+    let mockProducts = [
+      { id: "1", name: "無線藍芽耳機 A1", sku: "EAR-BLU-01", category: "電子產品", unit_price: 499, cost_price: 250, stock_quantity: 45, min_stock_alert: 10, unit: "個" },
+      { id: "2", name: "USB-C 快充線 2M", sku: "CAB-USBC-02", category: "配件數碼", unit_price: 79, cost_price: 20, stock_quantity: 4, min_stock_alert: 15, unit: "條" },
+      { id: "3", name: "靜音無線滑鼠", sku: "MOU-WL-09", category: "配件數碼", unit_price: 159, cost_price: 60, stock_quantity: 18, min_stock_alert: 5, unit: "隻" }
+    ];
+
+    // 渲染表格 (Data Table)
+    window.renderTable = function() {
+      const searchQuery = document.getElementById('searchInput').value.toLowerCase();
+      const category = document.getElementById('categoryFilter').value;
+      const tbody = document.getElementById('inventoryTbody');
+      tbody.innerHTML = '';
+
+      const filtered = mockProducts.filter(item => {
+        const matchSearch = item.name.toLowerCase().includes(searchQuery) || item.sku.toLowerCase().includes(searchQuery);
+        const matchCategory = !category || item.category === category;
+        return matchSearch && matchCategory;
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-slate-500">沒有找到符合條件的商品數據</td></tr>`;
+        updateMetrics();
+        return;
+      }
+
+      filtered.forEach(item => {
+        const isLowStock = item.stock_quantity <= item.min_stock_alert;
+        const row = `
+          <tr class="hover:bg-slate-700/30 transition ${isLowStock ? 'bg-rose-950/10' : ''}">
+            <td class="py-4 px-4">
+              <div class="font-semibold text-white">${item.name}</div>
+              <div class="text-xs text-slate-500">SKU: ${item.sku}</div>
+            </td>
+            <td class="py-4 px-4"><span class="bg-slate-700 text-slate-300 text-xs px-2.5 py-1 rounded-md">${item.category}</span></td>
+            <td class="py-4 px-4">
+              <div class="text-white font-medium">$${item.unit_price.toFixed(2)}</div>
+              <div class="text-xs text-slate-500">成本: $${item.cost_price.toFixed(2)}</div>
+            </td>
+            <td class="py-4 px-4">
+              <div class="font-semibold ${isLowStock ? 'text-rose-400' : 'text-white'}">${item.stock_quantity} ${item.unit}</div>
+              <div class="text-xs text-slate-400">預警線: ${item.min_stock_alert}</div>
+            </td>
+            <td class="py-4 px-4">
+              ${isLowStock ? `
+                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-rose-500/10 text-rose-400">
+                  <span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span> 低於安全庫存
+                </span>
+              ` : `
+                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> 庫存充裕
+                </span>
+              `}
+            </td>
+            <td class="py-4 px-4 text-right space-x-2">
+              <button onclick="openTxnModal('${item.id}', '${item.name}', ${item.stock_quantity})" class="text-indigo-400 hover:text-indigo-300 font-medium text-xs">出/入庫</button>
+              <button onclick="deleteProduct('${item.id}')" class="text-rose-400 hover:text-rose-300 font-medium text-xs">刪除</button>
+            </td>
+          </tr>
+        `;
+        tbody.insertAdjacentHTML('beforeend', row);
+      });
+
+      updateMetrics();
+    };
+
+    // 計算頂部卡片 Metrics
+    function updateMetrics() {
+      let totalSKUs = mockProducts.length;
+      let totalValue = mockProducts.reduce((acc, p) => acc + (p.stock_quantity * p.cost_price), 0);
+      let lowStockCount = mockProducts.filter(p => p.stock_quantity <= p.min_stock_alert).length;
+
+      document.getElementById('statTotalSKUs').textContent = totalSKUs;
+      document.getElementById('statTotalValue').textContent = `$${totalValue.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+      document.getElementById('statLowStock').textContent = `${lowStockCount} 件商品`;
+    }
+
+    // Modal 邏輯
+    window.openTxnModal = function(id, name, stock) {
+      document.getElementById('modalProductId').value = id;
+      document.getElementById('modalCurrentStock').value = stock;
+      document.getElementById('modalProductName').textContent = `商品：${name}`;
+      document.getElementById('modalStockDisplay').textContent = `${stock} 個`;
+      document.getElementById('txnQuantity').value = '';
+      document.getElementById('txnRemark').value = '';
+      document.querySelectorAll('input[name="txnType"]')[0].checked = true;
+      updateStockPreview();
+      document.getElementById('txnModal').classList.remove('hidden');
+    };
+
+    window.closeTxnModal = function() {
+      document.getElementById('txnModal').classList.add('hidden');
+    };
+
+    window.updateStockPreview = function() {
+      const currentStock = Number(document.getElementById('modalCurrentStock').value) || 0;
+      const qty = Number(document.getElementById('txnQuantity').value) || 0;
+      const type = document.querySelector('input[name="txnType"]:checked').value;
+      const previewEl = document.getElementById('stockPreviewText');
+      const submitBtn = document.getElementById('submitBtn');
+
+      let estimated = currentStock;
+      if (type === 'IN') estimated += qty;
+      else if (type === 'OUT') estimated -= qty;
+      else if (type === 'ADJUST') estimated = qty;
+
+      if (estimated < 0) {
+        previewEl.className = "text-xs text-rose-400 font-bold";
+        previewEl.textContent = `⚠️ 庫存不足 (將變為 ${estimated})`;
+        submitBtn.disabled = true;
+        submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+      } else {
+        previewEl.className = "text-xs text-indigo-400 font-medium";
+        previewEl.textContent = `預計更新後庫存：${estimated} 個`;
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+      }
+    };
+
+    window.submitTxnForm = function(e) {
+      e.preventDefault();
+      const id = document.getElementById('modalProductId').value;
+      const type = document.querySelector('input[name="txnType"]:checked').value;
+      const qty = Number(document.getElementById('txnQuantity').value);
+
+      const target = mockProducts.find(p => p.id === id);
+      if (target) {
+        if (type === 'IN') target.stock_quantity += qty;
+        else if (type === 'OUT') target.stock_quantity -= qty;
+        else if (type === 'ADJUST') target.stock_quantity = qty;
+
+        alert("✅ 出入庫異動成功！");
+        closeTxnModal();
+        renderTable();
+      }
+    };
+
+    window.deleteProduct = function(id) {
+      if (confirm("確定要刪除此商品嗎？")) {
+        mockProducts = mockProducts.filter(p => p.id !== id);
+        renderTable();
+      }
+    };
+
+    window.openAddProductModal = function() {
+      const name = prompt("請輸入新商品名稱:");
+      if (!name) return;
+      const sku = prompt("請輸入 SKU 號碼:", "SKU-" + Math.floor(Math.random()*1000));
+      const price = Number(prompt("請輸入售價 (HKD):", "100"));
+      
+      mockProducts.push({
+        id: String(Date.now()),
+        name,
+        sku: sku || "SKU-GEN",
+        category: "未分類",
+        unit_price: price || 0,
+        cost_price: (price || 0) * 0.5,
+        stock_quantity: 10,
+        min_stock_alert: 5,
+        unit: "個"
+      });
+
+      renderTable();
+    };
+
+    // 初始載入渲染
+    renderTable();
+  </script>
 </body>
 </html>
