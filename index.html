@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>倉儲管理系統</title>
+  <title>智倉 WAREHOUSE FLOW - 倉儲管理系統</title>
+  
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Font Awesome Icons -->
@@ -12,6 +13,13 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- JsBarcode for Real Barcodes -->
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+  <!-- QRCode.js for Real QR Codes -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <!-- Chart.js for Reports Analytics -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
     body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
@@ -20,6 +28,8 @@
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
     ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    .rack-grid-item { transition: all 0.2s ease-in-out; }
+    .rack-grid-item:hover { transform: translateY(-2px); }
   </style>
 </head>
 
@@ -29,6 +39,7 @@
     <!-- Mobile Sidebar Backdrop Overlay -->
     <div id="sidebarBackdrop" onclick="toggleSidebar(false)" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 md:hidden hidden transition-opacity"></div>
 
+    <!-- Collapsible Navigation Sidebar -->
     <aside id="sidebar" class="fixed md:static inset-y-0 left-0 z-50 w-64 bg-white border-r border-slate-200/80 flex flex-col justify-between transition-all duration-300 ease-in-out shrink-0 shadow-lg md:shadow-none -translate-x-full md:translate-x-0">
       <div>
         <!-- Sidebar Brand Header -->
@@ -38,8 +49,8 @@
               <i class="fa-solid fa-boxes-stacked text-base"></i>
             </div>
             <div class="sidebar-text">
-              <h1 class="font-black text-slate-900 text-base leading-none tracking-tight">倉儲管理系統</h1>
-              <span class="text-[10px] font-bold tracking-widest text-slate-400 uppercase">Inventory System</span>
+              <h1 class="font-black text-slate-900 text-base leading-none tracking-tight">智倉 FLOW</h1>
+              <span class="text-[10px] font-bold tracking-widest text-slate-400 uppercase">Warehouse System</span>
             </div>
           </div>
           <button onclick="toggleSidebar()" class="text-slate-400 hover:text-slate-600 md:flex hidden p-1.5 rounded-lg hover:bg-slate-100 transition">
@@ -47,7 +58,7 @@
           </button>
         </div>
 
-        <!-- Navigation Links -->
+        <!-- Navigation Links (7 Core Tabs) -->
         <nav class="p-3 space-y-1">
           <button id="nav-overview" onclick="switchTab('overview')" class="w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl font-semibold text-xs text-sky-700 bg-sky-50 transition group">
             <i class="fa-solid fa-table-cells-large text-sm shrink-0 w-5 text-center"></i>
@@ -57,6 +68,11 @@
           <button id="nav-inventory" onclick="switchTab('inventory')" class="w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition group">
             <i class="fa-solid fa-box text-sm shrink-0 w-5 text-center"></i>
             <span class="sidebar-text truncate">即時庫存</span>
+          </button>
+
+          <button id="nav-po-receiving" onclick="switchTab('po-receiving')" class="w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition group">
+            <i class="fa-solid fa-file-invoice-dollar text-sm shrink-0 w-5 text-center"></i>
+            <span class="sidebar-text truncate">PO 採購預錄點收</span>
           </button>
 
           <button id="nav-movement" onclick="switchTab('movement')" class="w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition group">
@@ -71,7 +87,7 @@
 
           <button id="nav-location" onclick="switchTab('location')" class="w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition group">
             <i class="fa-solid fa-map-location-dot text-sm shrink-0 w-5 text-center"></i>
-            <span class="sidebar-text truncate">貨位管理</span>
+            <span class="sidebar-text truncate">貨位互動平面圖</span>
           </button>
 
           <button id="nav-labels" onclick="switchTab('labels')" class="w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition group">
@@ -81,12 +97,7 @@
 
           <button id="nav-reports" onclick="switchTab('reports')" class="w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition group">
             <i class="fa-solid fa-chart-line text-sm shrink-0 w-5 text-center"></i>
-            <span class="sidebar-text truncate">報表</span>
-          </button>
-
-          <button id="nav-logs" onclick="switchTab('logs')" class="w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition group">
-            <i class="fa-solid fa-clock-rotate-left text-sm shrink-0 w-5 text-center"></i>
-            <span class="sidebar-text truncate">操作與通知</span>
+            <span class="sidebar-text truncate">報表分析</span>
           </button>
         </nav>
       </div>
@@ -95,11 +106,12 @@
       <div class="p-4 border-t border-slate-100">
         <div class="flex items-center space-x-3 sidebar-text">
           <div class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></div>
-          <span class="text-xs font-semibold text-slate-500">內部直接存取</span>
+          <span class="text-xs font-semibold text-slate-500">雲端同步連線中</span>
         </div>
       </div>
     </aside>
 
+    <!-- Main Workspace Area -->
     <main class="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto">
       
       <header class="h-16 bg-white/80 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-30 px-4 md:px-8 flex items-center justify-between shrink-0">
@@ -118,7 +130,7 @@
           </div>
 
           <!-- User Profile Icon -->
-          <div class="w-9 h-9 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-700 font-bold text-xs shadow-sm">
+          <div class="w-9 h-9 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold text-xs shadow-sm">
             ADM
           </div>
         </div>
@@ -128,7 +140,6 @@
 
         <!-- VIEW 1: OVERVIEW DASHBOARD -->
         <div id="view-overview" class="space-y-6">
-          <!-- Hero Banner -->
           <div class="relative overflow-hidden bg-gradient-to-r from-slate-900 via-slate-800 to-sky-950 text-white rounded-3xl p-6 md:p-8 shadow-xl">
             <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
               <div class="space-y-2">
@@ -136,8 +147,8 @@
                   <i class="fa-solid fa-cubes"></i>
                   <span>INVENTORY OVERVIEW</span>
                 </div>
-                <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight">工場倉存管理系統</h1>
-                <p class="text-xs md:text-sm text-slate-300">你有 <span class="text-sky-400 font-bold">4</span> 個未讀通知。</p>
+                <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight">今日貨倉，一目了然</h1>
+                <p class="text-xs md:text-sm text-slate-300">即時掌握存量、貨位同待辦流程。即時連線正常。</p>
               </div>
 
               <div class="flex items-center gap-3">
@@ -145,15 +156,15 @@
                   <i class="fa-solid fa-list-check"></i>
                   <span>查庫存</span>
                 </button>
-                <button onclick="switchTab('movement')" class="px-4 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-extrabold text-xs transition shadow-lg shadow-sky-500/30 flex items-center gap-2">
-                  <i class="fa-solid fa-plus"></i>
-                  <span>入倉登記</span>
+                <button onclick="switchTab('po-receiving')" class="px-4 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-extrabold text-xs transition shadow-lg shadow-sky-500/30 flex items-center gap-2">
+                  <i class="fa-solid fa-truck-ramp-box"></i>
+                  <span>PO 點收入庫</span>
                 </button>
               </div>
             </div>
           </div>
 
-          <!-- KPI Cards -->
+          <!-- KPI Stat Cards -->
           <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <div class="bg-white p-5 rounded-2xl border border-slate-200/60 shadow-sm space-y-3">
               <div class="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center">
@@ -198,7 +209,6 @@
 
           <!-- Overview Lists Grid -->
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <!-- Low Stock Warning List -->
             <div class="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm space-y-4">
               <div class="flex items-center justify-between">
                 <div>
@@ -212,7 +222,6 @@
               <div id="overview-low-stock-list" class="space-y-2.5"></div>
             </div>
 
-            <!-- Recent Withdrawals List -->
             <div class="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm space-y-4">
               <div class="flex items-center justify-between">
                 <div>
@@ -233,14 +242,14 @@
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h2 class="text-2xl font-black text-slate-900">即時庫存</h2>
-              <p class="text-xs text-slate-500 mt-1">以貨品、編號、倉庫、貨位或存態快速查找；每項結餘由完整異動記錄計算。</p>
+              <p class="text-xs text-slate-500 mt-1">以貨品、編號、倉庫、貨位快速查找；結餘由完整異動計算。</p>
             </div>
             <div class="flex items-center gap-2">
               <button onclick="openModal('modal-import-csv')" class="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-xs rounded-xl transition flex items-center gap-2">
                 <i class="fa-solid fa-file-import"></i> <span>批次匯入</span>
               </button>
               <button onclick="exportToCSV()" class="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-xs rounded-xl transition flex items-center gap-2">
-                <i class="fa-solid fa-download"></i> <span>匯出</span>
+                <i class="fa-solid fa-download"></i> <span>匯出 CSV</span>
               </button>
               <button onclick="openModal('modal-add-product')" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs rounded-xl transition shadow-md flex items-center gap-2">
                 <i class="fa-solid fa-plus"></i> <span>新增貨品</span>
@@ -248,7 +257,7 @@
             </div>
           </div>
 
-          <!-- Table Filters & Search -->
+          <!-- Table Filters -->
           <div class="bg-white p-4 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col md:flex-row items-center justify-between gap-3">
             <div class="relative w-full md:w-96">
               <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
@@ -272,7 +281,7 @@
             </div>
           </div>
 
-          <!-- Inventory Data Table -->
+          <!-- Table Content -->
           <div class="bg-white rounded-2xl border border-slate-200/60 shadow-sm overflow-hidden">
             <div class="overflow-x-auto">
               <table class="w-full text-left text-xs">
@@ -290,7 +299,6 @@
               </table>
             </div>
 
-            <!-- Pagination Bar -->
             <div class="p-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
               <span id="paginationInfo">顯示 0 至 0 筆，共 0 筆</span>
               <div class="flex items-center space-x-2">
@@ -302,15 +310,30 @@
           </div>
         </div>
 
-        <!-- VIEW 3: STOCK MOVEMENT & ADJUSTMENT -->
+        <!-- VIEW 3: PO RECEIVING & PRE-RECORD -->
+        <div id="view-po-receiving" class="hidden space-y-6">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h2 class="text-2xl font-black text-slate-900">PO 採購預錄與點收入庫</h2>
+              <p class="text-xs text-slate-500 mt-1">預先建檔採購單，貨到時一鍵調出點收實到數量同指定貨位入庫。</p>
+            </div>
+            <button onclick="openModal('modal-create-po')" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs rounded-xl transition shadow-md flex items-center gap-2">
+              <i class="fa-solid fa-file-circle-plus"></i> <span>建立 PO 採購預錄單</span>
+            </button>
+          </div>
+
+          <div id="poOrderList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+        </div>
+
+        <!-- VIEW 4: STOCK MOVEMENT & ADJUSTMENT -->
         <div id="view-movement" class="hidden space-y-6">
           <div>
             <h2 class="text-2xl font-black text-slate-900">入倉與庫存調整</h2>
-            <p class="text-xs text-slate-500 mt-1">每次數量變更都會同步更新結餘、建立批次或異動，並記錄操作人同時間。</p>
+            <p class="text-xs text-slate-500 mt-1">獨立選擇貨品編號與名稱，每次異動同步更新結餘並留上記錄。</p>
           </div>
 
           <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            <!-- Left Form Card -->
+            <!-- Form Card -->
             <div class="lg:col-span-6 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm space-y-5">
               <div class="flex p-1 bg-slate-100 rounded-xl">
                 <button id="tabInboundForm" onclick="toggleMovementForm('inbound')" class="flex-1 py-2 text-center rounded-lg bg-white font-bold text-xs shadow-sm text-slate-800">↓ 入倉登記</button>
@@ -320,13 +343,19 @@
               <form id="movementForm" onsubmit="handleMovementSubmit(event)" class="space-y-4">
                 <input type="hidden" id="movementType" value="inbound">
 
-                <div>
-                  <label class="block text-xs font-bold text-slate-700 mb-1">貨品 *</label>
-                  <select id="movementProduct" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs focus:bg-white focus:border-sky-500 focus:outline-none"></select>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">貨品編號 *</label>
+                    <select id="movementProductId" required onchange="onMovementProductIdChange(this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs focus:bg-white focus:border-sky-500 focus:outline-none"></select>
+                  </div>
+                  <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">貨品名稱 *</label>
+                    <select id="movementProductName" required onchange="onMovementProductNameChange(this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs focus:bg-white focus:border-sky-500 focus:outline-none"></select>
+                  </div>
                 </div>
 
                 <div>
-                  <label class="block text-xs font-bold text-slate-700 mb-1">貨位 *</label>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">目標貨位 *</label>
                   <select id="movementLocation" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs focus:bg-white focus:border-sky-500 focus:outline-none"></select>
                 </div>
 
@@ -337,7 +366,7 @@
 
                 <div>
                   <label class="block text-xs font-bold text-slate-700 mb-1">批次 / Lot No.</label>
-                  <input type="text" id="movementLot" placeholder="LOT-20260916" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs focus:bg-white focus:border-sky-500 focus:outline-none">
+                  <input type="text" id="movementLot" placeholder="LOT-20260918" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs focus:bg-white focus:border-sky-500 focus:outline-none">
                 </div>
 
                 <div>
@@ -352,34 +381,34 @@
               </form>
             </div>
 
-            <!-- Right Activity Log List -->
+            <!-- Activity Log -->
             <div class="lg:col-span-6 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm space-y-4">
-              <h3 class="font-bold text-slate-900 text-sm">最近庫存異動</h3>
+              <h3 class="font-bold text-slate-900 text-sm">最近庫存異動紀錄</h3>
               <div id="movementLogList" class="space-y-3 divide-y divide-slate-100"></div>
             </div>
           </div>
         </div>
 
-        <!-- VIEW 4: WITHDRAWAL WORKFLOW -->
+        <!-- VIEW 5: WITHDRAWAL WORKFLOW -->
         <div id="view-withdrawal" class="hidden space-y-6">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h2 class="text-2xl font-black text-slate-900">提取流程</h2>
-              <p class="text-xs text-slate-500 mt-1">由申請、審批、處理到完成扣減，全程保留狀態、操作人同時間記錄。</p>
+              <p class="text-xs text-slate-500 mt-1">支援選擇提取品項及數量，點擊檢視開啟詳細資料卡片。</p>
             </div>
             <button onclick="openModal('modal-create-withdrawal')" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs rounded-xl transition shadow-md flex items-center gap-2">
               <i class="fa-solid fa-plus"></i> <span>建立提取單</span>
             </button>
           </div>
 
-          <!-- Withdrawal Table -->
           <div class="bg-white rounded-2xl border border-slate-200/60 shadow-sm overflow-hidden">
             <div class="overflow-x-auto">
               <table class="w-full text-left text-xs">
                 <thead class="bg-slate-50/80 text-slate-500 font-bold border-b border-slate-200/60">
                   <tr>
-                    <th class="py-3.5 px-4">提取單</th>
+                    <th class="py-3.5 px-4">提取單號</th>
                     <th class="py-3.5 px-4">申請人 / 用途</th>
+                    <th class="py-3.5 px-4">提取品項總計</th>
                     <th class="py-3.5 px-4">狀態</th>
                     <th class="py-3.5 px-4">建立日期</th>
                     <th class="py-3.5 px-4 text-right">操作</th>
@@ -391,26 +420,48 @@
           </div>
         </div>
 
-        <!-- VIEW 5: LOCATION CONTROL -->
+        <!-- VIEW 6: INTERACTIVE LOCATION CONTROL MAP -->
         <div id="view-location" class="hidden space-y-6">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h2 class="text-2xl font-black text-slate-900">貨位管理</h2>
-              <p class="text-xs text-slate-500 mt-1">按倉庫檢視每個貨位嘅存量、容量同使用狀態，方便快速安排入倉及提取。</p>
+              <h2 class="text-2xl font-black text-slate-900">貨位互動式平面圖</h2>
+              <p class="text-xs text-slate-500 mt-1">視覺化點擊倉庫 ➔ 樓層貨架 ➔ 直觀檢視擺放之實時貨品清單。</p>
             </div>
-            <button onclick="openModal('modal-add-location')" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs rounded-xl transition shadow-md flex items-center gap-2">
-              <i class="fa-solid fa-plus"></i> <span>新增貨位</span>
-            </button>
+            <div class="flex items-center gap-2">
+              <select id="mapWarehouseSelect" onchange="renderInteractiveMap()" class="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none">
+                <option value="細倉1樓">倉庫區：細倉1樓</option>
+                <option value="地下">倉庫區：地下</option>
+                <option value="寫字樓">倉庫區：寫字樓</option>
+              </select>
+              <button onclick="openModal('modal-add-location')" class="px-4 py-2 bg-slate-900 text-white font-semibold text-xs rounded-xl transition shadow-md flex items-center gap-2">
+                <i class="fa-solid fa-plus"></i> <span>新增貨位</span>
+              </button>
+            </div>
           </div>
 
-          <div id="locationGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+          <!-- Interactive Graphic Grid Canvas -->
+          <div class="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm space-y-6">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+              <div class="flex items-center space-x-3">
+                <div class="w-3 h-3 rounded-full bg-emerald-500"></div>
+                <span id="currentMapTitle" class="font-black text-slate-800 text-sm">細倉1樓 實景貨架分佈網格</span>
+              </div>
+              <div class="flex items-center space-x-4 text-[11px] text-slate-500">
+                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-sky-500"></span> 有存放貨品</span>
+                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-slate-300"></span> 空置貨位</span>
+              </div>
+            </div>
+
+            <!-- Shelf Cards Grid -->
+            <div id="interactiveMapGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3"></div>
+          </div>
         </div>
 
-        <!-- VIEW 6: LABELS PRINTING -->
+        <!-- VIEW 7: LABELS PRINTING -->
         <div id="view-labels" class="hidden space-y-6">
           <div>
             <h2 class="text-2xl font-black text-slate-900">標籤列印</h2>
-            <p class="text-xs text-slate-500 mt-1">即時產生貨品條碼與貨位 QR Code 標籤以供貼附與盤點。</p>
+            <p class="text-xs text-slate-500 mt-1">選取貨品即時繪製生成真實向量 Barcode 條碼與 QR Code。</p>
           </div>
 
           <div class="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm max-w-xl space-y-4">
@@ -419,52 +470,83 @@
               <select id="labelSelectProduct" onchange="generateBarcodePreview()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs focus:bg-white focus:outline-none"></select>
             </div>
 
-            <div class="p-6 border-2 border-dashed border-slate-200 rounded-2xl text-center space-y-3 bg-slate-50/50">
-              <p id="barcodeCode" class="font-mono font-black text-xl tracking-widest text-slate-800">0314-001</p>
-              <p id="barcodeName" class="text-xs text-slate-500">Canter安全帶扣(鋼絲長扣)</p>
-              <div class="h-16 bg-slate-900 text-white flex items-center justify-center font-mono text-sm tracking-widest rounded-lg mx-auto w-48 shadow-inner">
-                ||||| | |||| ||| |||||
+            <!-- Dynamic SVG Preview Card -->
+            <div class="p-6 border-2 border-dashed border-slate-200 rounded-2xl text-center space-y-4 bg-slate-50/50">
+              <div>
+                <p id="barcodeCode" class="font-mono font-black text-lg tracking-widest text-slate-800">0314-001</p>
+                <p id="barcodeName" class="text-xs text-slate-500 mt-0.5">Canter安全帶扣(鋼絲長扣)</p>
+              </div>
+
+              <div class="flex flex-col sm:flex-row items-center justify-center gap-6 py-2 bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                <!-- Barcode SVG Target -->
+                <div class="flex flex-col items-center">
+                  <svg id="barcodeSvg" class="max-w-full"></svg>
+                </div>
+                <!-- QR Code Target -->
+                <div class="flex flex-col items-center">
+                  <div id="qrcodeCanvas" class="p-1.5 bg-white border border-slate-200 rounded-lg"></div>
+                  <span class="text-[9px] text-slate-400 font-mono mt-1">QR CODE</span>
+                </div>
               </div>
             </div>
 
-            <button onclick="showToast('條碼已送至列印佇列！', 'success')" class="w-full bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs py-3 rounded-xl transition shadow-md flex items-center justify-center space-x-2">
+            <button onclick="showToast('條碼標籤已成功送至列印佇列！', 'success')" class="w-full bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs py-3 rounded-xl transition shadow-md flex items-center justify-center space-x-2">
               <i class="fa-solid fa-print"></i>
-              <span>列印標籤</span>
+              <span>列印此標籤</span>
             </button>
           </div>
         </div>
 
-        <!-- VIEW 7: REPORTS -->
+        <!-- VIEW 8: REPORTS & CHART ANALYTICS -->
         <div id="view-reports" class="hidden space-y-6">
           <div>
-            <h2 class="text-2xl font-black text-slate-900">報表分析</h2>
-            <p class="text-xs text-slate-500 mt-1">週轉率與營運數據統計概覽。</p>
+            <h2 class="text-2xl font-black text-slate-900">報表數據分析</h2>
+            <p class="text-xs text-slate-500 mt-1">庫存結構、出入庫趨勢與熱門領用零組件分析。</p>
           </div>
-          <div class="bg-white p-8 rounded-2xl border border-slate-200/60 shadow-sm text-center py-12 space-y-3">
-            <i class="fa-solid fa-chart-pie text-4xl text-slate-300"></i>
-            <h3 class="font-bold text-slate-700 text-sm">數據報表準備中</h3>
-            <p class="text-xs text-slate-400">目前結餘與流向記錄完整，可隨時導出 CSV 報表檔。</p>
-          </div>
-        </div>
 
-        <!-- VIEW 8: LOGS & AUDIT -->
-        <div id="view-logs" class="hidden space-y-6">
-          <div>
-            <h2 class="text-2xl font-black text-slate-900">操作與通知</h2>
-            <p class="text-xs text-slate-500 mt-1">系統所有異動與使用者操作記錄。</p>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white p-5 rounded-2xl border border-slate-200/60 shadow-sm space-y-3">
+              <p class="text-xs font-semibold text-slate-400">總庫存品項數</p>
+              <h3 id="reportTotalTypes" class="text-2xl font-black text-slate-900">0</h3>
+            </div>
+            <div class="bg-white p-5 rounded-2xl border border-slate-200/60 shadow-sm space-y-3">
+              <p class="text-xs font-semibold text-slate-400">總累積異動次數</p>
+              <h3 id="reportTotalMovements" class="text-2xl font-black text-slate-900">0</h3>
+            </div>
+            <div class="bg-white p-5 rounded-2xl border border-slate-200/60 shadow-sm space-y-3">
+              <p class="text-xs font-semibold text-slate-400">已完成提取單據</p>
+              <h3 id="reportCompletedWithdrawals" class="text-2xl font-black text-slate-900">0</h3>
+            </div>
           </div>
-          <div class="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm space-y-3" id="fullAuditLogs"></div>
+
+          <!-- Charts Grid -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm space-y-4">
+              <h3 class="font-bold text-slate-900 text-sm">各倉庫存量佔比</h3>
+              <div class="h-64 flex items-center justify-center">
+                <canvas id="chartWarehouseShare"></canvas>
+              </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm space-y-4">
+              <h3 class="font-bold text-slate-900 text-sm">熱門領用貨品 TOP 5</h3>
+              <div class="h-64 flex items-center justify-center">
+                <canvas id="chartTopItems"></canvas>
+              </div>
+            </div>
+          </div>
         </div>
 
       </div>
     </main>
   </div>
 
+  <!-- Toast Notification Container -->
   <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none"></div>
 
-  <!-- Modal: Add/Edit Product -->
+  <!-- MODAL 1: Add/Edit Product -->
   <div id="modal-add-product" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
+    <div class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-md overflow-hidden">
       <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
         <h3 id="modalProductTitle" class="font-bold text-slate-900 text-sm">新增貨品</h3>
         <button onclick="closeModal('modal-add-product')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
@@ -496,9 +578,8 @@
         <div>
           <label class="block font-bold text-slate-700 mb-1">預設貨位 *</label>
           <div class="space-y-1.5">
-            <select id="prodLocationSelect" onchange="handleProdLocationSelectChange(this.value)" class="w-full border border-slate-200 rounded-xl p-2.5 focus:border-sky-500 focus:outline-none bg-slate-50 text-slate-700">
-            </select>
-            <input type="text" id="prodLocation" required placeholder="或直接在此手動輸入貨位 (例如：細倉1樓 / 3-3)" class="w-full border border-slate-200 rounded-xl p-2.5 focus:border-sky-500 focus:outline-none">
+            <select id="prodLocationSelect" onchange="handleProdLocationSelectChange(this.value)" class="w-full border border-slate-200 rounded-xl p-2.5 focus:border-sky-500 focus:outline-none bg-slate-50 text-slate-700"></select>
+            <input type="text" id="prodLocation" required placeholder="手動自訂貨位 (如：細倉1樓 / 3-3)" class="w-full border border-slate-200 rounded-xl p-2.5 focus:border-sky-500 focus:outline-none">
           </div>
         </div>
         <div class="pt-3 flex items-center justify-end space-x-2">
@@ -509,31 +590,152 @@
     </div>
   </div>
 
-  <!-- Modal: Create Withdrawal -->
-  <div id="modal-create-withdrawal" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-md overflow-hidden">
+  <!-- MODAL 2: Create PO Order -->
+  <div id="modal-create-po" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-lg overflow-hidden">
       <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-        <h3 class="font-bold text-slate-900 text-sm">建立提取單</h3>
-        <button onclick="closeModal('modal-create-withdrawal')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+        <h3 class="font-bold text-slate-900 text-sm">建立 PO 採購預錄單</h3>
+        <button onclick="closeModal('modal-create-po')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
       </div>
-      <form onsubmit="handleCreateWithdrawal(event)" class="p-6 space-y-3 text-xs">
-        <div>
-          <label class="block font-bold text-slate-700 mb-1">申請人 *</label>
-          <input type="text" id="withApplicant" required placeholder="姓名" class="w-full border border-slate-200 rounded-xl p-2.5 focus:outline-none focus:border-sky-500">
+      <form onsubmit="handleSavePoOrder(event)" class="p-6 space-y-4 text-xs">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">PO 採購單號 *</label>
+            <input type="text" id="poNumberInput" required placeholder="例如 PO-2026-009" class="w-full border border-slate-200 rounded-xl p-2.5 focus:outline-none focus:border-sky-500">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">供應商名稱 *</label>
+            <input type="text" id="poSupplierInput" required placeholder="例如 日本汽車零件廠" class="w-full border border-slate-200 rounded-xl p-2.5 focus:outline-none focus:border-sky-500">
+          </div>
         </div>
+
         <div>
-          <label class="block font-bold text-slate-700 mb-1">用途說明 *</label>
-          <input type="text" id="withPurpose" required placeholder="例如 維修車輛 AM8088" class="w-full border border-slate-200 rounded-xl p-2.5 focus:outline-none focus:border-sky-500">
+          <label class="block font-bold text-slate-700 mb-1">預計採購貨品與數量 *</label>
+          <div id="poItemsContainer" class="space-y-2"></div>
+          <button type="button" onclick="addPoItemRow()" class="mt-2 text-sky-600 hover:text-sky-700 font-bold text-xs flex items-center gap-1">
+            <i class="fa-solid fa-plus text-[10px]"></i> 增加一項物品
+          </button>
         </div>
+
         <div class="pt-3 flex items-center justify-end space-x-2">
-          <button type="button" onclick="closeModal('modal-create-withdrawal')" class="px-4 py-2 border border-slate-200 rounded-xl text-slate-600 font-semibold">取消</button>
-          <button type="submit" class="px-4 py-2 bg-slate-900 text-white rounded-xl font-semibold hover:bg-slate-800">建立</button>
+          <button type="button" onclick="closeModal('modal-create-po')" class="px-4 py-2 border border-slate-200 rounded-xl text-slate-600 font-semibold">取消</button>
+          <button type="submit" class="px-4 py-2 bg-slate-900 text-white rounded-xl font-semibold hover:bg-slate-800">儲存預錄單</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- Modal: Add Location -->
+  <!-- MODAL 3: Receive PO Order Drawer -->
+  <div id="modal-receive-po" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-xl overflow-hidden">
+      <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+        <div>
+          <h3 class="font-bold text-slate-900 text-sm">調出 PO 點收入庫</h3>
+          <p id="poReceiveModalSub" class="text-[10px] text-slate-400">PO-2026-001</p>
+        </div>
+        <button onclick="closeModal('modal-receive-po')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form onsubmit="handleConfirmPoReceive(event)" class="p-6 space-y-4 text-xs">
+        <input type="hidden" id="activePoDocId" value="">
+        
+        <div id="poReceiveItemsList" class="space-y-3 divide-y divide-slate-100 max-h-80 overflow-y-auto pr-1"></div>
+
+        <div class="pt-3 flex items-center justify-end space-x-2">
+          <button type="button" onclick="closeModal('modal-receive-po')" class="px-4 py-2 border border-slate-200 rounded-xl text-slate-600 font-semibold">取消</button>
+          <button type="submit" class="px-4 py-2 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-500 shadow-md flex items-center gap-1.5">
+            <i class="fa-solid fa-boxes-packing"></i>
+            <span>確認點收並入庫</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 4: Create Withdrawal -->
+  <div id="modal-create-withdrawal" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-lg overflow-hidden">
+      <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+        <h3 class="font-bold text-slate-900 text-sm">建立提取單</h3>
+        <button onclick="closeModal('modal-create-withdrawal')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form onsubmit="handleCreateWithdrawal(event)" class="p-6 space-y-3 text-xs">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">申請人 *</label>
+            <input type="text" id="withApplicant" required placeholder="姓名" class="w-full border border-slate-200 rounded-xl p-2.5 focus:outline-none focus:border-sky-500">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">用途說明 *</label>
+            <input type="text" id="withPurpose" required placeholder="維修 Canter ZU8831" class="w-full border border-slate-200 rounded-xl p-2.5 focus:outline-none focus:border-sky-500">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">提取貨品與數量 *</label>
+          <div id="withdrawalItemsContainer" class="space-y-2"></div>
+          <button type="button" onclick="addWithdrawalItemRow()" class="mt-2 text-sky-600 hover:text-sky-700 font-bold text-xs flex items-center gap-1">
+            <i class="fa-solid fa-plus text-[10px]"></i> 增加提取品項
+          </button>
+        </div>
+
+        <div class="pt-3 flex items-center justify-end space-x-2">
+          <button type="button" onclick="closeModal('modal-create-withdrawal')" class="px-4 py-2 border border-slate-200 rounded-xl text-slate-600 font-semibold">取消</button>
+          <button type="submit" class="px-4 py-2 bg-slate-900 text-white rounded-xl font-semibold hover:bg-slate-800">建立單據</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 5: View Withdrawal Details Card -->
+  <div id="modal-view-withdrawal" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-md overflow-hidden">
+      <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+        <div>
+          <h3 id="viewWithId" class="font-black text-slate-900 text-sm">WO-20260909-060</h3>
+          <span id="viewWithStatus" class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-600">已完成</span>
+        </div>
+        <button onclick="closeModal('modal-view-withdrawal')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="p-6 space-y-4 text-xs">
+        <div class="grid grid-cols-2 gap-2 p-3 bg-slate-50 rounded-xl border border-slate-100">
+          <div>
+            <span class="text-slate-400 text-[10px]">申請人</span>
+            <p id="viewWithApplicant" class="font-bold text-slate-800">Candy</p>
+          </div>
+          <div>
+            <span class="text-slate-400 text-[10px]">用途</span>
+            <p id="viewWithPurpose" class="font-bold text-slate-800">安裝 TB9053</p>
+          </div>
+        </div>
+
+        <div>
+          <h4 class="font-bold text-slate-700 mb-2">領用明細清單</h4>
+          <div id="viewWithItemsList" class="space-y-1.5 border border-slate-100 rounded-xl p-3 bg-white"></div>
+        </div>
+
+        <button onclick="closeModal('modal-view-withdrawal')" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl transition">關閉</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 6: Shelf Item Drawer Card -->
+  <div id="modal-shelf-details" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-md overflow-hidden">
+      <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+        <div>
+          <h3 id="shelfDetailTitle" class="font-black text-slate-900 text-sm">細倉1樓 / 3-3 存放貨品</h3>
+          <p id="shelfDetailCapacity" class="text-[10px] text-slate-400">容量上限 1000 個</p>
+        </div>
+        <button onclick="closeModal('modal-shelf-details')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="p-6 space-y-3 text-xs">
+        <div id="shelfDetailItemsList" class="space-y-2 max-h-80 overflow-y-auto"></div>
+        <button onclick="closeModal('modal-shelf-details')" class="w-full bg-slate-900 text-white font-bold py-2.5 rounded-xl">關閉</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 7: Add Location -->
   <div id="modal-add-location" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-md overflow-hidden">
       <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
@@ -543,15 +745,15 @@
       <form onsubmit="handleAddLocation(event)" class="p-6 space-y-3 text-xs">
         <div>
           <label class="block font-bold text-slate-700 mb-1">貨位名稱 *</label>
-          <input type="text" id="locName" required placeholder="例如 細倉1樓 / 6-1" class="w-full border border-slate-200 rounded-xl p-2.5 focus:outline-none focus:border-sky-500">
+          <input type="text" id="locName" required placeholder="細倉1樓 / 6-1" class="w-full border border-slate-200 rounded-xl p-2.5 focus:outline-none focus:border-sky-500">
         </div>
         <div>
           <label class="block font-bold text-slate-700 mb-1">貨位編號 *</label>
-          <input type="text" id="locCode" required placeholder="例如 SR-1-6-1" class="w-full border border-slate-200 rounded-xl p-2.5 focus:outline-none focus:border-sky-500">
+          <input type="text" id="locCode" required placeholder="SR-1-6-1" class="w-full border border-slate-200 rounded-xl p-2.5 focus:outline-none focus:border-sky-500">
         </div>
         <div>
           <label class="block font-bold text-slate-700 mb-1">容量上限 (選填)</label>
-          <input type="number" id="locCapacity" placeholder="例如 500" class="w-full border border-slate-200 rounded-xl p-2.5 focus:outline-none focus:border-sky-500">
+          <input type="number" id="locCapacity" placeholder="500" class="w-full border border-slate-200 rounded-xl p-2.5 focus:outline-none focus:border-sky-500">
         </div>
         <div class="pt-3 flex items-center justify-end space-x-2">
           <button type="button" onclick="closeModal('modal-add-location')" class="px-4 py-2 border border-slate-200 rounded-xl text-slate-600 font-semibold">取消</button>
@@ -561,7 +763,7 @@
     </div>
   </div>
 
-  <!-- Modal: Import CSV Batch -->
+  <!-- MODAL 8: CSV Batch Import -->
   <div id="modal-import-csv" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-lg overflow-hidden">
       <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
@@ -574,29 +776,22 @@
           <div>
             <p class="font-bold">格式說明 (CSV 欄位順序)：</p>
             <p class="font-mono mt-0.5 text-[10px] text-sky-700">貨品編號, 貨品名稱, 貨位, 存量, 預警門檻, 單位</p>
-            <p class="mt-1 text-slate-500">支援上傳 .csv 檔或直接將 Excel 複製之文字貼於下方區域。</p>
           </div>
         </div>
-        
         <div>
           <label class="block font-bold text-slate-700 mb-1">上傳 CSV 檔案</label>
-          <input type="file" id="csvFileInput" accept=".csv, .txt" onchange="parseCSVFile(event)" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 cursor-pointer">
+          <input type="file" id="csvFileInput" accept=".csv, .txt" onchange="parseCSVFile(event)" class="w-full text-xs text-slate-500 cursor-pointer">
         </div>
-
         <div>
           <div class="flex items-center justify-between mb-1">
-            <label class="block font-bold text-slate-700">或直接貼上 CSV 文本內容</label>
+            <label class="block font-bold text-slate-700">或貼上 CSV 文字</label>
             <button type="button" onclick="downloadCSVTemplate()" class="text-[11px] text-sky-600 hover:underline">下載 CSV 範例檔</button>
           </div>
-          <textarea id="csvTextArea" rows="6" placeholder="例如：&#10;0314-015, Canter繼電器, 細倉1樓 / 3-3, 50, 10, 個&#10;0314-016, 煞車片, 地下, 12, 5, 塊" class="w-full font-mono text-slate-800 bg-slate-50 border border-slate-200 rounded-xl p-3 text-[11px] focus:bg-white focus:border-sky-500 focus:outline-none"></textarea>
+          <textarea id="csvTextArea" rows="5" class="w-full font-mono text-slate-800 bg-slate-50 border border-slate-200 rounded-xl p-3 text-[11px] focus:outline-none"></textarea>
         </div>
-
         <div class="pt-2 flex items-center justify-end space-x-2">
           <button type="button" onclick="closeModal('modal-import-csv')" class="px-4 py-2 border border-slate-200 rounded-xl text-slate-600 font-semibold">取消</button>
-          <button type="submit" id="btnImportSubmit" class="px-4 py-2 bg-slate-900 text-white rounded-xl font-semibold hover:bg-slate-800 flex items-center gap-1.5">
-            <i class="fa-solid fa-file-arrow-up text-xs"></i>
-            <span>開始寫入數據庫</span>
-          </button>
+          <button type="submit" id="btnImportSubmit" class="px-4 py-2 bg-slate-900 text-white rounded-xl font-semibold hover:bg-slate-800">開始寫入數據庫</button>
         </div>
       </form>
     </div>
@@ -604,54 +799,30 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { 
-      getAuth, 
-      signInAnonymously, 
-      signInWithCustomToken, 
-      onAuthStateChanged 
-    } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { 
-      getFirestore, 
-      doc, 
-      getDoc, 
-      setDoc, 
-      addDoc, 
-      updateDoc, 
-      deleteDoc, 
-      onSnapshot, 
-      collection, 
-      getDocs 
-    } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, addDoc, updateDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+    /* Global UI State */
     window.sidebarOpen = typeof window.sidebarOpen !== 'undefined' ? window.sidebarOpen : true;
 
-    // 全域側邊欄切換函式
     function toggleSidebar(forceState) {
       const sidebar = document.getElementById('sidebar');
       const backdrop = document.getElementById('sidebarBackdrop');
       if (!sidebar) return;
-
-      if (typeof forceState === 'boolean') {
-        window.sidebarOpen = forceState;
-      } else {
-        window.sidebarOpen = !window.sidebarOpen;
-      }
+      window.sidebarOpen = typeof forceState === 'boolean' ? forceState : !window.sidebarOpen;
 
       if (window.sidebarOpen) {
         sidebar.classList.remove('-translate-x-full');
-        sidebar.classList.add('translate-x-0');
         if (backdrop) backdrop.classList.remove('hidden');
       } else {
         sidebar.classList.add('-translate-x-full');
-        sidebar.classList.remove('translate-x-0');
         if (backdrop) backdrop.classList.add('hidden');
       }
     }
     window.toggleSidebar = toggleSidebar;
 
-    // 全域 Tab 切換函式
     function switchTab(tabId) {
-      const tabs = ['overview', 'inventory', 'movement', 'withdrawal', 'location', 'labels', 'reports', 'logs'];
+      const tabs = ['overview', 'inventory', 'po-receiving', 'movement', 'withdrawal', 'location', 'labels', 'reports'];
       tabs.forEach(t => {
         const viewEl = document.getElementById(`view-${t}`);
         const navEl = document.getElementById(`nav-${t}`);
@@ -670,35 +841,40 @@
         targetNav.classList.remove('text-slate-600');
       }
 
-      const pageTitleMap = {
+      const titleMap = {
         overview: '總覽',
         inventory: '即時庫存',
+        'po-receiving': 'PO 採購預錄點收',
         movement: '入倉與調整',
         withdrawal: '提取流程',
-        location: '貨位管理',
+        location: '貨位互動式平面圖',
         labels: '標籤列印',
-        reports: '報表',
-        logs: '操作與通知'
+        reports: '報表數據分析'
       };
-
       const titleEl = document.getElementById('currentPageTitle');
-      if (titleEl) titleEl.textContent = pageTitleMap[tabId] || '總覽';
+      if (titleEl) titleEl.textContent = titleMap[tabId] || '總覽';
 
-      // 手機版點擊導覽選單後自動收合側邊欄
-      if (window.innerWidth < 768) {
-        toggleSidebar(false);
-      }
+      if (window.innerWidth < 768) toggleSidebar(false);
+
+      if (tabId === 'overview') renderOverview();
+      if (tabId === 'inventory') renderInventoryTable();
+      if (tabId === 'po-receiving') renderPoOrders();
+      if (tabId === 'movement') populateMovementDropdowns();
+      if (tabId === 'withdrawal') renderWithdrawals();
+      if (tabId === 'location') renderInteractiveMap();
+      if (tabId === 'labels') populateLabelSelect();
+      if (tabId === 'reports') renderReports();
     }
     window.switchTab = switchTab;
 
+    /* Firebase Configuration */
     const userFirebaseConfig = {
       apiKey: "AIzaSyAVSqdFFoepdwrRtxGjyoSBPwHlfxORGd8",
       authDomain: "newtech-system.firebaseapp.com",
       projectId: "newtech-system",
       storageBucket: "newtech-system.firebasestorage.app",
       messagingSenderId: "871887832252",
-      appId: "1:871887832252:web:bd02bbb128616a5187fcb9",
-      measurementId: "G-QTTFP959KP"
+      appId: "1:871887832252:web:bd02bbb128616a5187fcb9"
     };
 
     const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : userFirebaseConfig;
@@ -710,12 +886,14 @@
 
     let currentUser = null;
 
-    // Collection Path References
+    /* Firestore References */
     const productsColRef = collection(db, 'artifacts', appId, 'public', 'data', 'products');
     const locationsColRef = collection(db, 'artifacts', appId, 'public', 'data', 'locations');
     const withdrawalsColRef = collection(db, 'artifacts', appId, 'public', 'data', 'withdrawals');
     const movementsColRef = collection(db, 'artifacts', appId, 'public', 'data', 'movements');
+    const poOrdersColRef = collection(db, 'artifacts', appId, 'public', 'data', 'poOrders');
 
+    /* Default Data Store */
     const defaultProducts = [
       { id: '0314-001', name: 'Canter安全帶扣(鋼絲長扣)', location: '細倉1樓 / 3-3', stock: 5, min: 10, unit: '個', date: '28/8/2026' },
       { id: '0314-002', name: '電池端子絕緣膠套(紅黑各200個)', location: '細倉1樓 / 5-2', stock: 400, min: 50, unit: '個', date: '28/8/2026' },
@@ -723,24 +901,33 @@
       { id: '0314-007', name: '保險座 · BX2017', location: '細倉1樓 / 5-3', stock: 1000, min: 100, unit: '個', date: '28/8/2026' },
       { id: '0314-008', name: '帶固定腳繼電器底座 · HDJ054Y-6.3-21', location: '細倉1樓 / 5-3', stock: 1000, min: 100, unit: '個', date: '28/8/2026' },
       { id: '0314-009', name: '250A分條排', location: '寫字樓', stock: 20, min: 5, unit: '個', date: '28/8/2026' },
-      { id: '0314-010', name: 'tactical bus 中門玻璃', location: '寫字樓下面', stock: 1, min: 2, unit: '塊', date: '28/8/2026' },
+      { id: '0314-010', name: 'tactical bus 中門玻璃', location: '地下', stock: 1, min: 2, unit: '塊', date: '28/8/2026' },
       { id: '0324-002', name: 'ECAS控制器(Canter)', location: '細倉1樓 / 3-3', stock: 7, min: 5, unit: '個', date: '28/8/2026' }
     ];
 
     const defaultLocations = [
-      { name: 'Candy位', code: 'Candy位', capacity: null },
-      { name: 'SR-1-3', code: 'SR-1-3', capacity: null },
-      { name: '即時交Vincy', code: '即時交Vincy', capacity: null },
       { name: '細倉1樓 / 3-3', code: 'SR-1-3-3', capacity: 1000 },
       { name: '細倉1樓 / 5-2', code: 'SR-1-5-2', capacity: 500 },
+      { name: '細倉1樓 / 5-3', code: 'SR-1-5-3', capacity: 500 },
       { name: '地下', code: 'G-01', capacity: 500 },
       { name: '寫字樓', code: 'OFFICE', capacity: 200 }
     ];
 
+    const defaultPoOrders = [
+      { 
+        id: 'PO-2026-001', 
+        supplier: '日本東京零組件株式會社', 
+        status: 'pending', 
+        date: '18/9/2026',
+        items: [
+          { prodId: '0314-001', expectedQty: 20, receivedQty: 0 },
+          { prodId: '0324-002', expectedQty: 10, receivedQty: 0 }
+        ]
+      }
+    ];
+
     const defaultWithdrawals = [
-      { id: 'WO-20260909-062', applicant: 'Candy', purpose: 'test', status: 'rejected', date: '9/9/2026', createdAt: Date.now() - 5000 },
-      { id: 'WO-20260909-061', applicant: 'Candy', purpose: '<TB9053>安裝', status: 'completed', date: '9/9/2026', createdAt: Date.now() - 4000 },
-      { id: 'WO-20260909-060', applicant: '德哥', purpose: '維修Canter ZU8831', status: 'completed', date: '9/9/2026', createdAt: Date.now() - 3000 }
+      { id: 'WO-20260909-060', applicant: '德哥', purpose: '維修 Canter ZU8831', status: 'completed', date: '9/9/2026', items: [{ prodId: '0314-001', name: 'Canter安全帶扣', qty: 2 }] }
     ];
 
     const store = {
@@ -751,30 +938,19 @@
       products: [...defaultProducts],
       locations: [...defaultLocations],
       withdrawals: [...defaultWithdrawals],
+      poOrders: [...defaultPoOrders],
       movements: []
     };
 
     function showToast(message, type = 'info') {
       const container = document.getElementById('toastContainer');
       if (!container) return;
-
       const toast = document.createElement('div');
-      const bgClass = type === 'success' ? 'bg-emerald-600 text-white' : 
-                      type === 'error' ? 'bg-rose-600 text-white' : 
-                      'bg-slate-800 text-white';
-      const iconClass = type === 'success' ? 'fa-circle-check' : 
-                        type === 'error' ? 'fa-circle-xmark' : 
-                        'fa-circle-info';
-
+      const bgClass = type === 'success' ? 'bg-emerald-600 text-white' : type === 'error' ? 'bg-rose-600 text-white' : 'bg-slate-800 text-white';
       toast.className = `flex items-center space-x-2 px-4 py-3 rounded-xl shadow-xl text-xs font-semibold ${bgClass} transition-all duration-300 transform translate-y-2 opacity-0 pointer-events-auto`;
-      toast.innerHTML = `<i class="fa-solid ${iconClass}"></i><span>${message}</span>`;
-
+      toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-circle-info'}"></i><span>${message}</span>`;
       container.appendChild(toast);
-
-      requestAnimationFrame(() => {
-        toast.classList.remove('translate-y-2', 'opacity-0');
-      });
-
+      requestAnimationFrame(() => toast.classList.remove('translate-y-2', 'opacity-0'));
       setTimeout(() => {
         toast.classList.add('opacity-0', 'translate-y-2');
         setTimeout(() => toast.remove(), 300);
@@ -786,9 +962,9 @@
       const modal = document.getElementById(id);
       if (!modal) return;
       modal.classList.remove('hidden');
-      if (id === 'modal-add-product') {
-        populateProdLocationSelect();
-      }
+      if (id === 'modal-add-product') populateProdLocationSelect();
+      if (id === 'modal-create-po') initPoItemsForm();
+      if (id === 'modal-create-withdrawal') initWithdrawalItemsForm();
     }
     window.openModal = openModal;
 
@@ -804,22 +980,18 @@
       const lowStockEl = document.getElementById('stat-low-stock');
       const pendingWithEl = document.getElementById('stat-pending-withdrawals');
 
-      const totalTypes = store.products.length;
-      const totalStock = store.products.reduce((acc, p) => acc + (p.stock || 0), 0);
       const lowStockItems = store.products.filter(p => (p.stock || 0) <= (p.min || 0));
       const pendingWith = store.withdrawals.filter(w => w.status === 'pending');
 
-      if (totalTypesEl) totalTypesEl.textContent = totalTypes.toLocaleString();
-      if (totalStockEl) totalStockEl.textContent = totalStock.toLocaleString();
+      if (totalTypesEl) totalTypesEl.textContent = store.products.length.toLocaleString();
+      if (totalStockEl) totalStockEl.textContent = store.products.reduce((a, b) => a + (b.stock || 0), 0).toLocaleString();
       if (lowStockEl) lowStockEl.textContent = lowStockItems.length.toString();
       if (pendingWithEl) pendingWithEl.textContent = pendingWith.length.toString();
 
       const lowListEl = document.getElementById('overview-low-stock-list');
       if (lowListEl) {
-        if (lowStockItems.length === 0) {
-          lowListEl.innerHTML = '<p class="text-xs text-slate-400 py-2">目前無低存量項目</p>';
-        } else {
-          lowListEl.innerHTML = lowStockItems.slice(0, 6).map(item => `
+        lowListEl.innerHTML = lowStockItems.length === 0 ? '<p class="text-xs text-slate-400 py-2">目前無低存量項目</p>' :
+          lowStockItems.slice(0, 5).map(item => `
             <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100">
               <div>
                 <span class="font-bold text-slate-800 text-xs">${item.id} · ${item.name}</span>
@@ -831,33 +1003,22 @@
               </div>
             </div>
           `).join('');
-        }
       }
 
       const recentWithEl = document.getElementById('overview-recent-withdrawals');
       if (recentWithEl) {
-        if (store.withdrawals.length === 0) {
-          recentWithEl.innerHTML = '<p class="text-xs text-slate-400 py-2">暫無提取記錄</p>';
-        } else {
-          recentWithEl.innerHTML = store.withdrawals.slice(0, 5).map(w => {
-            const badgeColor = w.status === 'completed' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
-                               w.status === 'rejected' ? 'bg-rose-50 text-rose-700 border-rose-200' :
-                               'bg-amber-50 text-amber-700 border-amber-200';
-            const statusText = w.status === 'completed' ? '已完成' : w.status === 'rejected' ? '已拒絕' : '待審批';
-            return `
-              <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100">
-                <div>
-                  <span class="font-bold text-slate-800 text-xs">${w.id}</span>
-                  <p class="text-[11px] text-slate-400 mt-0.5">${w.applicant} · ${w.purpose}</p>
-                </div>
-                <span class="px-2 py-1 rounded-lg text-[10px] font-bold border ${badgeColor}">${statusText}</span>
+        recentWithEl.innerHTML = store.withdrawals.length === 0 ? '<p class="text-xs text-slate-400 py-2">暫無提取記錄</p>' :
+          store.withdrawals.slice(0, 5).map(w => `
+            <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100">
+              <div>
+                <span class="font-bold text-slate-800 text-xs">${w.id}</span>
+                <p class="text-[11px] text-slate-400 mt-0.5">${w.applicant} · ${w.purpose}</p>
               </div>
-            `;
-          }).join('');
-        }
+              <span class="px-2 py-1 rounded-lg text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">已完成</span>
+            </div>
+          `).join('');
       }
     }
-    window.renderOverview = renderOverview;
 
     function renderInventoryTable() {
       const search = (document.getElementById('inventorySearch')?.value || '').toLowerCase().trim();
@@ -865,30 +1026,13 @@
       const statusFilter = document.getElementById('statusFilter')?.value || 'ALL';
 
       let filtered = store.products.filter(p => {
-        const matchSearch = !search || 
-          p.id.toLowerCase().includes(search) || 
-          p.name.toLowerCase().includes(search) || 
-          (p.location && p.location.toLowerCase().includes(search));
-
+        const matchSearch = !search || p.id.toLowerCase().includes(search) || p.name.toLowerCase().includes(search) || (p.location && p.location.toLowerCase().includes(search));
         const matchWh = whFilter === 'ALL' || (p.location && p.location.includes(whFilter));
-
         let status = 'normal';
         if (p.stock === 0) status = 'out_of_stock';
         else if (p.stock <= p.min) status = 'low_stock';
-
         const matchStatus = statusFilter === 'ALL' || status === statusFilter;
-
         return matchSearch && matchWh && matchStatus;
-      });
-
-      filtered.sort((a, b) => {
-        let valA = a[store.sortField] ?? '';
-        let valB = b[store.sortField] ?? '';
-        if (typeof valA === 'string') valA = valA.toLowerCase();
-        if (typeof valB === 'string') valB = valB.toLowerCase();
-        if (valA < valB) return store.sortAsc ? -1 : 1;
-        if (valA > valB) return store.sortAsc ? 1 : -1;
-        return 0;
       });
 
       const total = filtered.length;
@@ -900,58 +1044,36 @@
 
       const tbody = document.getElementById('inventoryTableBody');
       if (tbody) {
-        if (pageItems.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-slate-400">沒有找到符合條件的貨品</td></tr>`;
-        } else {
-          tbody.innerHTML = pageItems.map(p => {
-            let statusBadge = `<span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">正常</span>`;
-            if (p.stock === 0) {
-              statusBadge = `<span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-300">缺貨</span>`;
-            } else if (p.stock <= p.min) {
-              statusBadge = `<span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200 animate-pulse">低存量</span>`;
-            }
-
-            return `
-              <tr class="hover:bg-slate-50/80 transition">
-                <td class="py-3 px-4">
-                  <span class="font-mono font-bold text-slate-900">${p.id}</span>
-                  <p class="text-slate-500 text-[11px] font-normal">${p.name}</p>
-                </td>
-                <td class="py-3 px-4 font-semibold text-slate-700">${p.location || '-'}</td>
-                <td class="py-3 px-4 text-right font-black text-slate-900 text-sm">${p.stock} <span class="text-[10px] text-slate-400 font-normal">${p.unit || '個'}</span></td>
-                <td class="py-3 px-4">${statusBadge}</td>
-                <td class="py-3 px-4 text-slate-400 text-[11px]">${p.date || '-'}</td>
-                <td class="py-3 px-4 text-right">
-                  <button onclick="editProduct('${p.id}')" class="text-sky-600 hover:text-sky-800 font-semibold text-xs px-2 py-1 rounded hover:bg-sky-50 transition">
-                    <i class="fa-solid fa-pen-to-square"></i> 編輯
-                  </button>
-                </td>
-              </tr>
-            `;
-          }).join('');
-        }
+        tbody.innerHTML = pageItems.length === 0 ? `<tr><td colspan="6" class="py-8 text-center text-slate-400">沒有找到符合條件的貨品</td></tr>` :
+          pageItems.map(p => `
+            <tr class="hover:bg-slate-50/80 transition">
+              <td class="py-3 px-4">
+                <span class="font-mono font-bold text-slate-900">${p.id}</span>
+                <p class="text-slate-500 text-[11px] font-normal">${p.name}</p>
+              </td>
+              <td class="py-3 px-4 font-semibold text-slate-700">${p.location || '-'}</td>
+              <td class="py-3 px-4 text-right font-black text-slate-900 text-sm">${p.stock} <span class="text-[10px] text-slate-400 font-normal">${p.unit || '個'}</span></td>
+              <td class="py-3 px-4">${p.stock <= p.min ? '<span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200">低存量</span>' : '<span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">正常</span>'}</td>
+              <td class="py-3 px-4 text-slate-400 text-[11px]">${p.date || '-'}</td>
+              <td class="py-3 px-4 text-right">
+                <button onclick="editProduct('${p.id}')" class="text-sky-600 hover:text-sky-800 font-semibold text-xs px-2 py-1 rounded hover:bg-sky-50 transition">
+                  <i class="fa-solid fa-pen-to-square"></i> 編輯
+                </button>
+              </td>
+            </tr>
+          `).join('');
       }
 
       const infoEl = document.getElementById('paginationInfo');
       if (infoEl) infoEl.textContent = `顯示 ${total === 0 ? 0 : start + 1} 至 ${Math.min(start + store.pageSize, total)} 筆，共 ${total} 筆`;
-
       const pageNumEl = document.getElementById('currentPageNum');
       if (pageNumEl) pageNumEl.textContent = store.currentPage;
-
-      const btnPrev = document.getElementById('btnPrevPage');
-      const btnNext = document.getElementById('btnNextPage');
-      if (btnPrev) btnPrev.disabled = store.currentPage <= 1;
-      if (btnNext) btnNext.disabled = store.currentPage >= totalPages;
     }
     window.renderInventoryTable = renderInventoryTable;
 
     function sortTable(field) {
-      if (store.sortField === field) {
-        store.sortAsc = !store.sortAsc;
-      } else {
-        store.sortField = field;
-        store.sortAsc = true;
-      }
+      if (store.sortField === field) store.sortAsc = !store.sortAsc;
+      else { store.sortField = field; store.sortAsc = true; }
       renderInventoryTable();
     }
     window.sortTable = sortTable;
@@ -961,6 +1083,195 @@
       renderInventoryTable();
     }
     window.changePage = changePage;
+
+    function renderPoOrders() {
+      const container = document.getElementById('poOrderList');
+      if (!container) return;
+      if (store.poOrders.length === 0) {
+        container.innerHTML = `<div class="col-span-full py-12 text-center text-slate-400 bg-white rounded-2xl border border-slate-200/60">暫無 PO 採購預錄單據</div>`;
+        return;
+      }
+      container.innerHTML = store.poOrders.map(po => `
+        <div class="bg-white p-5 rounded-2xl border border-slate-200/60 shadow-sm space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div>
+              <span class="font-mono font-black text-slate-900 text-sm">${po.id}</span>
+              <p class="text-[11px] text-slate-400">${po.supplier}</p>
+            </div>
+            <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold ${po.status === 'received' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}">${po.status === 'received' ? '已完成點收' : '等待到貨點收'}</span>
+          </div>
+
+          <div class="space-y-1.5 text-xs text-slate-600">
+            ${po.items.map(i => {
+              const prod = store.products.find(p => p.id === i.prodId);
+              return `<div class="flex justify-between"><span>${i.prodId} · ${prod ? prod.name : '貨品'}</span><span class="font-bold">預計: ${i.expectedQty} ${prod ? prod.unit : '個'}</span></div>`;
+            }).join('')}
+          </div>
+
+          ${po.status === 'pending' ? `
+            <button onclick="openReceivePoModal('${po.id}')" class="w-full py-2 bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs rounded-xl transition shadow-md flex items-center justify-center gap-1.5">
+              <i class="fa-solid fa-boxes-packing"></i>
+              <span>調出單據點收入庫</span>
+            </button>
+          ` : `<p class="text-[10px] text-slate-400 text-center">已於 ${po.date} 點收完畢</p>`}
+        </div>
+      `).join('');
+    }
+
+    function initPoItemsForm() {
+      const container = document.getElementById('poItemsContainer');
+      if (!container) return;
+      container.innerHTML = '';
+      addPoItemRow();
+    }
+
+    function addPoItemRow() {
+      const container = document.getElementById('poItemsContainer');
+      if (!container) return;
+      const rowId = 'poRow_' + Date.now() + Math.random().toString(36).substr(2, 4);
+      const row = document.createElement('div');
+      row.id = rowId;
+      row.className = 'flex items-center space-x-2';
+      row.innerHTML = `
+        <select class="po-prod-select flex-1 bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs">
+          ${store.products.map(p => `<option value="${p.id}">${p.id} - ${p.name}</option>`).join('')}
+        </select>
+        <input type="number" min="1" value="10" placeholder="預計數量" class="po-qty-input w-24 bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs">
+        <button type="button" onclick="document.getElementById('${rowId}').remove()" class="text-rose-500 hover:text-rose-700 p-1"><i class="fa-solid fa-trash-can"></i></button>
+      `;
+      container.appendChild(row);
+    }
+    window.addPoItemRow = addPoItemRow;
+
+    async function handleSavePoOrder(e) {
+      e.preventDefault();
+      try {
+        const poNo = document.getElementById('poNumberInput').value.trim();
+        const supplier = document.getElementById('poSupplierInput').value.trim();
+
+        const prodSelects = document.querySelectorAll('.po-prod-select');
+        const qtyInputs = document.querySelectorAll('.po-qty-input');
+
+        const items = [];
+        prodSelects.forEach((sel, idx) => {
+          items.push({
+            prodId: sel.value,
+            expectedQty: parseInt(qtyInputs[idx].value) || 1,
+            receivedQty: 0
+          });
+        });
+
+        const newPo = {
+          id: poNo,
+          supplier: supplier,
+          status: 'pending',
+          date: new Date().toLocaleDateString('zh-TW'),
+          items: items
+        };
+
+        store.poOrders.unshift(newPo);
+        renderPoOrders();
+        closeModal('modal-create-po');
+
+        if (currentUser) await addDoc(poOrdersColRef, newPo);
+        showToast(`PO 採購預錄單 [${poNo}] 建立成功！`, 'success');
+      } catch (err) {
+        showToast("建立失敗: " + err.message, "error");
+      }
+    }
+    window.handleSavePoOrder = handleSavePoOrder;
+
+    function openReceivePoModal(poId) {
+      const po = store.poOrders.find(p => p.id === poId);
+      if (!po) return;
+      document.getElementById('activePoDocId').value = po.id;
+      document.getElementById('poReceiveModalSub').textContent = `${po.id} · ${po.supplier}`;
+
+      const container = document.getElementById('poReceiveItemsList');
+      container.innerHTML = po.items.map((i, idx) => {
+        const prod = store.products.find(p => p.id === i.prodId);
+        return `
+          <div class="pt-2 first:pt-0 space-y-2">
+            <div class="flex justify-between font-bold text-slate-800">
+              <span>${i.prodId} · ${prod ? prod.name : '貨品'}</span>
+              <span>預計: ${i.expectedQty} ${prod ? prod.unit : '個'}</span>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-[10px] text-slate-400">實到入庫數量</label>
+                <input type="number" min="0" value="${i.expectedQty}" id="receiveQty_${idx}" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs">
+              </div>
+              <div>
+                <label class="block text-[10px] text-slate-400">分配儲存貨位</label>
+                <select id="receiveLoc_${idx}" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs">
+                  ${store.locations.map(l => `<option value="${l.name}">${l.name}</option>`).join('')}
+                </select>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      openModal('modal-receive-po');
+    }
+    window.openReceivePoModal = openReceivePoModal;
+
+    async function handleConfirmPoReceive(e) {
+      e.preventDefault();
+      try {
+        const poId = document.getElementById('activePoDocId').value;
+        const po = store.poOrders.find(p => p.id === poId);
+        if (!po) return;
+
+        po.items.forEach((item, idx) => {
+          const recQty = parseInt(document.getElementById(`receiveQty_${idx}`)?.value) || 0;
+          const locName = document.getElementById(`receiveLoc_${idx}`)?.value || '細倉1樓 / 3-3';
+
+          const prod = store.products.find(p => p.id === item.prodId);
+          if (prod) {
+            prod.stock += recQty;
+            prod.location = locName;
+            prod.date = new Date().toLocaleDateString('zh-TW');
+
+            if (currentUser) {
+              updateDoc(doc(productsColRef, prod.id), { stock: prod.stock, location: locName, date: prod.date });
+            }
+          }
+        });
+
+        po.status = 'received';
+        renderPoOrders();
+        renderOverview();
+        renderInventoryTable();
+        closeModal('modal-receive-po');
+        showToast(`PO [${poId}] 實到點收完成！庫存已一鍵寫入更新。`, 'success');
+      } catch (err) {
+        showToast("點收入庫失敗: " + err.message, "error");
+      }
+    }
+    window.handleConfirmPoReceive = handleConfirmPoReceive;
+
+    function populateMovementDropdowns() {
+      const idSel = document.getElementById('movementProductId');
+      const nameSel = document.getElementById('movementProductName');
+      const locSel = document.getElementById('movementLocation');
+
+      if (idSel) idSel.innerHTML = `<option value="">請選擇貨品編號...</option>` + store.products.map(p => `<option value="${p.id}">${p.id}</option>`).join('');
+      if (nameSel) nameSel.innerHTML = `<option value="">請選擇貨品名稱...</option>` + store.products.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+      if (locSel) locSel.innerHTML = store.locations.map(l => `<option value="${l.name}">${l.name}</option>`).join('');
+    }
+
+    function onMovementProductIdChange(val) {
+      const nameSel = document.getElementById('movementProductName');
+      if (nameSel) nameSel.value = val;
+    }
+    window.onMovementProductIdChange = onMovementProductIdChange;
+
+    function onMovementProductNameChange(val) {
+      const idSel = document.getElementById('movementProductId');
+      if (idSel) idSel.value = val;
+    }
+    window.onMovementProductNameChange = onMovementProductNameChange;
 
     function toggleMovementForm(type) {
       document.getElementById('movementType').value = type;
@@ -983,93 +1294,318 @@
     }
     window.toggleMovementForm = toggleMovementForm;
 
-    function renderMovementLogs() {
-      const container = document.getElementById('movementLogList');
-      if (!container) return;
-      if (store.movements.length === 0) {
-        container.innerHTML = '<p class="text-xs text-slate-400 py-4 text-center">目前無庫存異動紀錄</p>';
-        return;
+    async function handleMovementSubmit(e) {
+      e.preventDefault();
+      try {
+        const type = document.getElementById('movementType').value;
+        const prodId = document.getElementById('movementProductId').value;
+        const locName = document.getElementById('movementLocation').value;
+        const qty = parseInt(document.getElementById('movementQty').value);
+
+        const prod = store.products.find(p => p.id === prodId);
+        if (!prod) throw new Error("請選擇有效貨品編號！");
+
+        const newStock = type === 'inbound' ? (prod.stock + qty) : qty;
+        prod.stock = newStock;
+        prod.location = locName;
+        prod.date = new Date().toLocaleDateString('zh-TW');
+
+        const record = {
+          type, productName: prod.name, location: locName, qty, timestamp: new Date().toLocaleString('zh-TW'), createdAt: Date.now()
+        };
+        store.movements.unshift(record);
+
+        renderOverview();
+        renderInventoryTable();
+        document.getElementById('movementForm').reset();
+
+        if (currentUser) {
+          await updateDoc(doc(productsColRef, prod.id), { stock: newStock, location: locName, date: prod.date });
+          await addDoc(movementsColRef, record);
+        }
+        showToast("庫存異動成功！", "success");
+      } catch (err) {
+        showToast(err.message, "error");
       }
-      container.innerHTML = store.movements.slice(0, 10).map(m => `
-        <div class="py-2.5 flex items-center justify-between text-xs">
-          <div>
-            <span class="font-bold text-slate-800">${m.productName}</span>
-            <p class="text-[11px] text-slate-400">${m.location} · ${m.timestamp}</p>
-          </div>
-          <span class="font-bold ${m.type === 'inbound' ? 'text-emerald-600' : 'text-sky-600'}">
-            ${m.type === 'inbound' ? '+' : '='}${m.qty}
-          </span>
-        </div>
-      `).join('');
     }
+    window.handleMovementSubmit = handleMovementSubmit;
 
     function renderWithdrawals() {
       const tbody = document.getElementById('withdrawalTableBody');
       if (!tbody) return;
-      if (store.withdrawals.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-slate-400">目前無提取單數據</td></tr>`;
-        return;
-      }
-      tbody.innerHTML = store.withdrawals.map(w => `
-        <tr class="hover:bg-slate-50 transition">
-          <td class="py-3 px-4 font-mono font-bold text-slate-800">${w.id}</td>
-          <td class="py-3 px-4">
-            <span class="font-bold text-slate-800">${w.applicant}</span>
-            <p class="text-[11px] text-slate-400">${w.purpose}</p>
-          </td>
-          <td class="py-3 px-4">
-            <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold ${w.status === 'completed' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'}">
-              ${w.status === 'completed' ? '已完成' : '已拒絕'}
-            </span>
-          </td>
-          <td class="py-3 px-4 text-slate-400">${w.date}</td>
-          <td class="py-3 px-4 text-right">
-            <button onclick="showToast('提取單詳細資料：${w.id}', 'info')" class="text-slate-600 hover:text-slate-900 text-xs font-semibold">檢視</button>
-          </td>
-        </tr>
-      `).join('');
+      tbody.innerHTML = store.withdrawals.length === 0 ? `<tr><td colspan="6" class="py-6 text-center text-slate-400">目前無提取單據</td></tr>` :
+        store.withdrawals.map(w => `
+          <tr class="hover:bg-slate-50 transition">
+            <td class="py-3 px-4 font-mono font-bold text-slate-800">${w.id}</td>
+            <td class="py-3 px-4"><span class="font-bold text-slate-800">${w.applicant}</span><p class="text-[11px] text-slate-400">${w.purpose}</p></td>
+            <td class="py-3 px-4 font-bold text-slate-700">${(w.items || []).length} 項品項</td>
+            <td class="py-3 px-4"><span class="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">已完成</span></td>
+            <td class="py-3 px-4 text-slate-400">${w.date}</td>
+            <td class="py-3 px-4 text-right">
+              <button onclick="viewWithdrawalDetail('${w.id}')" class="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition">檢視卡片</button>
+            </td>
+          </tr>
+        `).join('');
     }
 
-    function renderLocations() {
-      const grid = document.getElementById('locationGrid');
-      if (!grid) return;
-      grid.innerHTML = store.locations.map(loc => {
-        const count = store.products.filter(p => p.location && p.location.includes(loc.name)).reduce((sum, p) => sum + p.stock, 0);
+    function initWithdrawalItemsForm() {
+      const container = document.getElementById('withdrawalItemsContainer');
+      if (!container) return;
+      container.innerHTML = '';
+      addWithdrawalItemRow();
+    }
+
+    function addWithdrawalItemRow() {
+      const container = document.getElementById('withdrawalItemsContainer');
+      if (!container) return;
+      const rowId = 'withRow_' + Date.now() + Math.random().toString(36).substr(2, 4);
+      const row = document.createElement('div');
+      row.id = rowId;
+      row.className = 'flex items-center space-x-2';
+      row.innerHTML = `
+        <select class="with-prod-select flex-1 bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs">
+          ${store.products.map(p => `<option value="${p.id}">${p.id} - ${p.name} (存量:${p.stock})</option>`).join('')}
+        </select>
+        <input type="number" min="1" value="1" placeholder="數量" class="with-qty-input w-20 bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs">
+        <button type="button" onclick="document.getElementById('${rowId}').remove()" class="text-rose-500 p-1"><i class="fa-solid fa-trash-can"></i></button>
+      `;
+      container.appendChild(row);
+    }
+    window.addWithdrawalItemRow = addWithdrawalItemRow;
+
+    async function handleCreateWithdrawal(e) {
+      e.preventDefault();
+      try {
+        const applicant = document.getElementById('withApplicant').value;
+        const purpose = document.getElementById('withPurpose').value;
+        const newId = `WO-${new Date().toISOString().slice(0,10).replace(/-/g,'')}-${Math.floor(100+Math.random()*900)}`;
+
+        const prodSelects = document.querySelectorAll('.with-prod-select');
+        const qtyInputs = document.querySelectorAll('.with-qty-input');
+
+        const items = [];
+        prodSelects.forEach((sel, idx) => {
+          const prod = store.products.find(p => p.id === sel.value);
+          items.push({
+            prodId: sel.value,
+            name: prod ? prod.name : '貨品',
+            qty: parseInt(qtyInputs[idx].value) || 1
+          });
+        });
+
+        const newDoc = {
+          id: newId, applicant, purpose, status: 'completed', date: new Date().toLocaleDateString('zh-TW'), items, createdAt: Date.now()
+        };
+
+        store.withdrawals.unshift(newDoc);
+        renderWithdrawals();
+        renderOverview();
+        closeModal('modal-create-withdrawal');
+
+        if (currentUser) await addDoc(withdrawalsColRef, newDoc);
+        showToast("提取單建立成功！", 'success');
+      } catch (err) {
+        showToast("建立失敗: " + err.message, 'error');
+      }
+    }
+    window.handleCreateWithdrawal = handleCreateWithdrawal;
+
+    function viewWithdrawalDetail(id) {
+      const w = store.withdrawals.find(item => item.id === id);
+      if (!w) return;
+      document.getElementById('viewWithId').textContent = w.id;
+      document.getElementById('viewWithApplicant').textContent = w.applicant;
+      document.getElementById('viewWithPurpose').textContent = w.purpose;
+
+      const container = document.getElementById('viewWithItemsList');
+      container.innerHTML = (w.items || []).map(i => `
+        <div class="flex justify-between py-1 border-b border-slate-50 last:border-0">
+          <span class="font-medium text-slate-800">${i.prodId} · ${i.name}</span>
+          <span class="font-bold text-sky-600">${i.qty} 個</span>
+        </div>
+      `).join('');
+
+      openModal('modal-view-withdrawal');
+    }
+    window.viewWithdrawalDetail = viewWithdrawalDetail;
+
+    function renderInteractiveMap() {
+      const selWarehouse = document.getElementById('mapWarehouseSelect')?.value || '細倉1樓';
+      document.getElementById('currentMapTitle').textContent = `${selWarehouse} 實景貨架分佈網格`;
+
+      const gridContainer = document.getElementById('interactiveMapGrid');
+      if (!gridContainer) return;
+
+      const racks = [
+        { code: '3-1', name: '貨架 3-1' }, { code: '3-2', name: '貨架 3-2' }, { code: '3-3', name: '貨架 3-3' },
+        { code: '5-1', name: '貨架 5-1' }, { code: '5-2', name: '貨架 5-2' }, { code: '5-3', name: '貨架 5-3' },
+        { code: 'G-01', name: '地面特大貨架' }, { code: 'OFFICE', name: '寫字樓儲物櫃' }
+      ];
+
+      gridContainer.innerHTML = racks.map(r => {
+        const fullLocName = `${selWarehouse} / ${r.code}`;
+        const items = store.products.filter(p => p.location && (p.location.includes(r.code) || p.location === selWarehouse));
+        const totalItemsQty = items.reduce((a, b) => a + (b.stock || 0), 0);
+        const isOccupied = items.length > 0;
+
         return `
-          <div class="bg-white p-5 rounded-2xl border border-slate-200/60 shadow-sm space-y-3">
+          <div onclick="openShelfDetailsModal('${fullLocName}', '${r.code}')" class="rack-grid-item p-4 rounded-2xl border ${isOccupied ? 'border-sky-200 bg-sky-50/50 hover:bg-sky-50' : 'border-slate-200 bg-slate-50 hover:bg-slate-100'} cursor-pointer flex flex-col justify-between space-y-3 shadow-sm">
             <div class="flex items-center justify-between">
-              <div>
-                <h4 class="font-bold text-slate-900 text-sm">${loc.name}</h4>
-                <p class="text-[11px] text-slate-400">編號 ${loc.code}</p>
-              </div>
-              <button onclick="showToast('編輯貨位：${loc.name}', 'info')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-pen text-xs"></i></button>
+              <span class="font-mono font-black text-slate-800 text-xs">${r.code}</span>
+              <span class="w-2.5 h-2.5 rounded-full ${isOccupied ? 'bg-sky-500' : 'bg-slate-300'}"></span>
             </div>
-            <div class="flex items-baseline justify-between pt-2">
-              <span class="text-2xl font-black text-slate-900">${count}</span>
-              <span class="text-[11px] text-slate-400">${loc.capacity ? `容量上限 ${loc.capacity}` : '未設容量'}</span>
+            <div>
+              <p class="font-bold text-slate-900 text-xs">${r.name}</p>
+              <p class="text-[10px] text-slate-400 mt-0.5">${items.length} 種貨品共 ${totalItemsQty} 個</p>
             </div>
           </div>
         `;
       }).join('');
     }
+    window.renderInteractiveMap = renderInteractiveMap;
 
-    function renderLogs() {
-      const container = document.getElementById('fullAuditLogs');
-      if (!container) return;
-      if (store.movements.length === 0) {
-        container.innerHTML = '<p class="text-xs text-slate-400 py-4">目前尚無操作紀錄</p>';
-        return;
-      }
-      container.innerHTML = store.movements.map(m => `
-        <div class="p-3 border-b border-slate-100 flex items-center justify-between text-xs">
-          <div>
-            <span class="font-bold text-slate-800">${m.user || '系統用戶'}</span>
-            <span class="text-slate-500"> 執行 ${m.type === 'inbound' ? '入倉' : '調整'} - ${m.productName} (${m.qty})</span>
+    function openShelfDetailsModal(fullLocName, code) {
+      document.getElementById('shelfDetailTitle').textContent = `${fullLocName} 存放貨品清單`;
+      const items = store.products.filter(p => p.location && (p.location.includes(code) || p.location.includes(fullLocName)));
+
+      const container = document.getElementById('shelfDetailItemsList');
+      container.innerHTML = items.length === 0 ? `<p class="text-xs text-slate-400 text-center py-4">此貨位目前空置，未存放貨品</p>` :
+        items.map(p => `
+          <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-between">
+            <div>
+              <p class="font-bold text-slate-800 text-xs">${p.id} · ${p.name}</p>
+              <p class="text-[10px] text-slate-400">預警門檻 ${p.min}</p>
+            </div>
+            <span class="font-black text-sm text-slate-900">${p.stock} ${p.unit}</span>
           </div>
-          <span class="text-[11px] text-slate-400">${m.timestamp}</span>
-        </div>
-      `).join('');
+        `).join('');
+
+      openModal('modal-shelf-details');
     }
+    window.openShelfDetailsModal = openShelfDetailsModal;
+
+    function populateLabelSelect() {
+      const select = document.getElementById('labelSelectProduct');
+      if (select) {
+        select.innerHTML = store.products.map(p => `<option value="${p.id}">${p.id} - ${p.name}</option>`).join('');
+        generateBarcodePreview();
+      }
+    }
+
+    function generateBarcodePreview() {
+      const pId = document.getElementById('labelSelectProduct')?.value;
+      const prod = store.products.find(p => p.id === pId) || store.products[0];
+      if (!prod) return;
+
+      document.getElementById('barcodeCode').textContent = prod.id;
+      document.getElementById('barcodeName').textContent = prod.name;
+
+      // Draw SVG Barcode
+      try {
+        JsBarcode("#barcodeSvg", prod.id, {
+          format: "CODE128",
+          width: 1.5,
+          height: 45,
+          displayValue: false
+        });
+      } catch (e) {}
+
+      // Draw QR Code
+      const qrContainer = document.getElementById('qrcodeCanvas');
+      if (qrContainer) {
+        qrContainer.innerHTML = '';
+        new QRCode(qrContainer, {
+          text: prod.id,
+          width: 50,
+          height: 50
+        });
+      }
+    }
+    window.generateBarcodePreview = generateBarcodePreview;
+
+    let chart1, chart2;
+    function renderReports() {
+      document.getElementById('reportTotalTypes').textContent = store.products.length;
+      document.getElementById('reportTotalMovements').textContent = store.movements.length;
+      document.getElementById('reportCompletedWithdrawals').textContent = store.withdrawals.length;
+
+      // Render Donut Chart
+      const ctx1 = document.getElementById('chartWarehouseShare')?.getContext('2d');
+      if (ctx1) {
+        if (chart1) chart1.destroy();
+        chart1 = new Chart(ctx1, {
+          type: 'doughnut',
+          data: {
+            labels: ['細倉1樓', '地下', '寫字樓'],
+            datasets: [{
+              data: [
+                store.products.filter(p => (p.location || '').includes('細倉1樓')).length,
+                store.products.filter(p => (p.location || '').includes('地下')).length,
+                store.products.filter(p => (p.location || '').includes('寫字樓')).length
+              ],
+              backgroundColor: ['#0284c7', '#6366f1', '#f59e0b']
+            }]
+          },
+          options: { responsive: true, maintainAspectRatio: false }
+        });
+      }
+
+      // Render Bar Chart
+      const ctx2 = document.getElementById('chartTopItems')?.getContext('2d');
+      if (ctx2) {
+        if (chart2) chart2.destroy();
+        chart2 = new Chart(ctx2, {
+          type: 'bar',
+          data: {
+            labels: store.products.slice(0, 5).map(p => p.id),
+            datasets: [{
+              label: '現有庫存量',
+              data: store.products.slice(0, 5).map(p => p.stock),
+              backgroundColor: '#0f172a'
+            }]
+          },
+          options: { responsive: true, maintainAspectRatio: false }
+        });
+      }
+    }
+
+    /* Additional Handlers */
+    function populateProdLocationSelect() {
+      const select = document.getElementById('prodLocationSelect');
+      if (!select) return;
+      select.innerHTML = `<option value="">-- 請選擇現有貨位 --</option>` + store.locations.map(l => `<option value="${l.name}">${l.name}</option>`).join('');
+    }
+
+    function handleProdLocationSelectChange(val) {
+      if (val) document.getElementById('prodLocation').value = val;
+    }
+    window.handleProdLocationSelectChange = handleProdLocationSelectChange;
+
+    async function handleSaveProduct(e) {
+      e.preventDefault();
+      try {
+        const id = document.getElementById('prodId').value.trim();
+        const name = document.getElementById('prodName').value.trim();
+        const location = document.getElementById('prodLocation').value.trim();
+        const unit = document.getElementById('prodUnit').value.trim();
+        const stock = parseInt(document.getElementById('prodStock').value) || 0;
+        const min = parseInt(document.getElementById('prodMin').value) || 0;
+
+        const productData = { id, name, location, unit, stock, min, date: new Date().toLocaleDateString('zh-TW') };
+        const idx = store.products.findIndex(p => p.id === id);
+        if (idx >= 0) store.products[idx] = productData;
+        else store.products.push(productData);
+
+        renderOverview();
+        renderInventoryTable();
+        closeModal('modal-add-product');
+        if (currentUser) await setDoc(doc(productsColRef, id), productData);
+        showToast("貨品資料儲存成功！", "success");
+      } catch (err) {
+        showToast("儲存失敗: " + err.message, "error");
+      }
+    }
+    window.handleSaveProduct = handleSaveProduct;
 
     function editProduct(id) {
       const prod = store.products.find(p => p.id === id);
@@ -1077,106 +1613,52 @@
       document.getElementById('modalProductTitle').textContent = '編輯貨品';
       document.getElementById('editProductId').value = prod.id;
       document.getElementById('prodId').value = prod.id;
-      document.getElementById('prodId').readOnly = true;
       document.getElementById('prodName').value = prod.name;
       document.getElementById('prodUnit').value = prod.unit || '個';
       document.getElementById('prodMin').value = prod.min || 5;
       document.getElementById('prodStock').value = prod.stock || 0;
       document.getElementById('prodLocation').value = prod.location || '';
-      populateProdLocationSelect();
       openModal('modal-add-product');
     }
     window.editProduct = editProduct;
 
-    function populateMovementSelects() {
-      const pSel = document.getElementById('movementProduct');
-      const lSel = document.getElementById('movementLocation');
-      if (pSel) {
-        pSel.innerHTML = store.products.map(p => `<option value="${p.id}">${p.id} - ${p.name}</option>`).join('');
-      }
-      if (lSel) {
-        lSel.innerHTML = store.locations.map(l => `<option value="${l.name}">${l.name}</option>`).join('');
-      }
-    }
+    async function handleAddLocation(e) {
+      e.preventDefault();
+      try {
+        const name = document.getElementById('locName').value;
+        const code = document.getElementById('locCode').value;
+        const cap = document.getElementById('locCapacity').value;
+        const newLoc = { name, code, capacity: cap ? parseInt(cap) : null };
 
-    function populateLabelSelect() {
-      const lSel = document.getElementById('labelSelectProduct');
-      if (lSel) {
-        lSel.innerHTML = store.products.map(p => `<option value="${p.id}">${p.id} - ${p.name}</option>`).join('');
-        generateBarcodePreview();
+        store.locations.push(newLoc);
+        renderInteractiveMap();
+        closeModal('modal-add-location');
+        if (currentUser) await addDoc(locationsColRef, newLoc);
+        showToast(`貨位 [${name}] 新增成功！`, 'success');
+      } catch (err) {
+        showToast("新增失敗: " + err.message, "error");
       }
     }
-
-    function populateProdLocationSelect() {
-      const select = document.getElementById('prodLocationSelect');
-      if (!select) return;
-      select.innerHTML = `<option value="">-- 請選擇現有貨位 --</option>` +
-        store.locations.map(l => `<option value="${l.name}">${l.name}</option>`).join('') +
-        `<option value="__CUSTOM__">✎ 手動自訂貨位...</option>`;
-    }
-    window.populateProdLocationSelect = populateProdLocationSelect;
-
-    function handleProdLocationSelectChange(val) {
-      const locInput = document.getElementById('prodLocation');
-      if (!locInput) return;
-      if (val && val !== '__CUSTOM__') {
-        locInput.value = val;
-      } else if (val === '__CUSTOM__') {
-        locInput.value = '';
-        locInput.focus();
-      }
-    }
-    window.handleProdLocationSelectChange = handleProdLocationSelectChange;
-
-    function generateBarcodePreview() {
-      const pId = document.getElementById('labelSelectProduct')?.value;
-      const prod = store.products.find(p => p.id === pId) || store.products[0];
-      if (prod) {
-        const bCode = document.getElementById('barcodeCode');
-        const bName = document.getElementById('barcodeName');
-        if (bCode) bCode.textContent = prod.id;
-        if (bName) bName.textContent = prod.name;
-      }
-    }
-    window.generateBarcodePreview = generateBarcodePreview;
-
-    function handleGlobalSearch(query) {
-      if (!query) return;
-      switchTab('inventory');
-      const searchInput = document.getElementById('inventorySearch');
-      if (searchInput) {
-        searchInput.value = query;
-        renderInventoryTable();
-      }
-    }
-    window.handleGlobalSearch = handleGlobalSearch;
+    window.handleAddLocation = handleAddLocation;
 
     function exportToCSV() {
-      if (store.products.length === 0) {
-        showToast("無資料可供匯出！", "error");
-        return;
-      }
       let csv = "貨品編號,貨品名稱,貨位,存量,預警門檻,單位\n";
-      store.products.forEach(p => {
-        csv += `"${p.id}","${p.name}","${p.location || ''}",${p.stock},${p.min},"${p.unit || '個'}"\n`;
-      });
+      store.products.forEach(p => { csv += `"${p.id}","${p.name}","${p.location || ''}",${p.stock},${p.min},"${p.unit || '個'}"\n`; });
       const blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
       link.download = `inventory_export_${new Date().toISOString().slice(0,10)}.csv`;
-      document.body.appendChild(link);
       link.click();
-      document.body.removeChild(link);
-      showToast("已成功將庫存數據匯出為 CSV 檔！", "success");
+      showToast("已成功將數據匯出為 CSV 檔！", "success");
     }
     window.exportToCSV = exportToCSV;
 
     function downloadCSVTemplate() {
-      const sample = "貨品編號,貨品名稱,貨位,存量,預警門檻,單位\n0314-015,Canter繼電器,細倉1樓 / 3-3,50,10,個\n0314-016,煞車片,地下,12,5,塊";
+      const sample = "貨品編號,貨品名稱,貨位,存量,預警門檻,單位\n0314-015,Canter繼電器,細倉1樓 / 3-3,50,10,個";
       const blob = new Blob(["\ufeff" + sample], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
-      link.download = "inventory_import_template.csv";
+      link.download = "inventory_template.csv";
       link.click();
     }
     window.downloadCSVTemplate = downloadCSVTemplate;
@@ -1185,12 +1667,37 @@
       const file = e.target.files[0];
       if (!file) return;
       const reader = new FileReader();
-      reader.onload = function(evt) {
-        document.getElementById('csvTextArea').value = evt.target.result;
-      };
+      reader.onload = (evt) => { document.getElementById('csvTextArea').value = evt.target.result; };
       reader.readAsText(file);
     }
     window.parseCSVFile = parseCSVFile;
+
+    async function handleCSVImport(e) {
+      e.preventDefault();
+      const rawText = document.getElementById('csvTextArea').value.trim();
+      if (!rawText) return showToast("請提供 CSV 內容", "error");
+
+      const lines = rawText.split(/\r?\n/);
+      let count = 0;
+      for (let i = 0; i < lines.length; i++) {
+        if (i === 0 && lines[i].includes("貨品編號")) continue;
+        const cols = lines[i].split(',').map(c => c.trim().replace(/^"(.*)"$/, '$1'));
+        if (cols.length >= 2) {
+          const [id, name, location = '細倉1樓', stockStr = '0', minStr = '5', unit = '個'] = cols;
+          const productData = { id, name, location, stock: parseInt(stockStr) || 0, min: parseInt(minStr) || 5, unit, date: new Date().toLocaleDateString('zh-TW') };
+          const idx = store.products.findIndex(p => p.id === id);
+          if (idx >= 0) store.products[idx] = productData;
+          else store.products.push(productData);
+          if (currentUser) setDoc(doc(productsColRef, id), productData);
+          count++;
+        }
+      }
+      closeModal('modal-import-csv');
+      renderOverview();
+      renderInventoryTable();
+      showToast(`成功匯入 ${count} 筆數據！`, "success");
+    }
+    window.handleCSVImport = handleCSVImport;
 
     async function initAuth() {
       try {
@@ -1201,321 +1708,21 @@
         }
       } catch (err) {
         console.error("Auth error:", err);
-        const statusEl = document.querySelector('.sidebar-text span');
-        if (statusEl) statusEl.textContent = `本地備用模式`;
-        showToast("Firebase 驗證未完成: " + err.message + "（已啟用本地備用）", "error");
       }
     }
 
     onAuthStateChanged(auth, (user) => {
       if (user) {
         currentUser = user;
-        const statusEl = document.querySelector('.sidebar-text span');
-        if (statusEl) statusEl.textContent = `雲端即時連線 (${user.uid.slice(0, 5)}...)`;
-        setupRealtimeListeners();
+        onSnapshot(productsColRef, (snap) => {
+          if (!snap.empty) {
+            store.products = snap.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+            renderOverview();
+            renderInventoryTable();
+          }
+        });
       }
     });
-
-    function setupRealtimeListeners() {
-      onSnapshot(productsColRef, async (snapshot) => {
-        if (snapshot.empty && currentUser) {
-          for (const item of defaultProducts) {
-            try { await setDoc(doc(productsColRef, item.id), item); } catch (e) {}
-          }
-          return;
-        }
-        if (!snapshot.empty) {
-          store.products = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
-          renderOverview();
-          renderInventoryTable();
-          populateMovementSelects();
-          populateLabelSelect();
-        }
-      }, (err) => {
-        console.error("Products Sync Error:", err);
-      });
-
-      onSnapshot(locationsColRef, async (snapshot) => {
-        if (snapshot.empty && currentUser) {
-          for (const loc of defaultLocations) {
-            try { await addDoc(locationsColRef, loc); } catch (e) {}
-          }
-          return;
-        }
-        if (!snapshot.empty) {
-          store.locations = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-          renderLocations();
-        }
-      }, (err) => {
-        console.error("Locations Sync Error:", err);
-      });
-
-      onSnapshot(withdrawalsColRef, async (snapshot) => {
-        if (snapshot.empty && currentUser) {
-          for (const item of defaultWithdrawals) {
-            try { await addDoc(withdrawalsColRef, item); } catch (e) {}
-          }
-          return;
-        }
-        if (!snapshot.empty) {
-          const data = snapshot.docs.map(doc => ({ docId: doc.id, ...doc.data() }));
-          data.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-          store.withdrawals = data;
-          renderWithdrawals();
-          renderOverview();
-        }
-      }, (err) => {
-        console.error("Withdrawals Sync Error:", err);
-      });
-
-      onSnapshot(movementsColRef, (snapshot) => {
-        if (!snapshot.empty) {
-          const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-          data.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-          store.movements = data;
-          renderMovementLogs();
-          renderLogs();
-        }
-      }, (err) => {
-        console.error("Movements Sync Error:", err);
-      });
-    }
-
-    async function handleSaveProduct(e) {
-      e.preventDefault();
-      try {
-        const editId = document.getElementById('editProductId').value;
-        const id = document.getElementById('prodId').value.trim();
-        const name = document.getElementById('prodName').value.trim();
-        const location = document.getElementById('prodLocation').value.trim();
-        const unit = document.getElementById('prodUnit').value.trim();
-        const stock = parseInt(document.getElementById('prodStock').value) || 0;
-        const min = parseInt(document.getElementById('prodMin').value) || 0;
-        const updatedDate = new Date().toLocaleDateString('zh-TW');
-
-        const productData = { id, name, location, unit, stock, min, date: updatedDate };
-
-        const existingIdx = store.products.findIndex(p => p.id === (editId || id));
-        if (existingIdx >= 0) {
-          store.products[existingIdx] = productData;
-        } else {
-          store.products.push(productData);
-        }
-        renderOverview();
-        renderInventoryTable();
-        populateMovementSelects();
-        populateLabelSelect();
-        closeModal('modal-add-product');
-
-        if (currentUser) {
-          if (editId) {
-            await setDoc(doc(productsColRef, editId), productData, { merge: true });
-            showToast(`貨品 [${id}] 雲端更新成功！`, 'success');
-          } else {
-            await setDoc(doc(productsColRef, id), productData);
-            showToast(`新增貨品 [${id}] 成功！`, 'success');
-          }
-        } else {
-          showToast(`貨品已於本地儲存 (Firebase 離線)`, 'success');
-        }
-      } catch (err) {
-        showToast("儲存貨品失敗: " + err.message, "error");
-      }
-    }
-    window.handleSaveProduct = handleSaveProduct;
-
-    async function handleMovementSubmit(e) {
-      e.preventDefault();
-      try {
-        const type = document.getElementById('movementType').value;
-        const prodId = document.getElementById('movementProduct').value;
-        const locName = document.getElementById('movementLocation').value;
-        const qty = parseInt(document.getElementById('movementQty').value);
-
-        const prod = store.products.find(p => p.id === prodId);
-        if (!prod) throw new Error("請選擇有效貨品！");
-
-        const newStock = type === 'inbound' ? (prod.stock + qty) : qty;
-        const updatedDate = new Date().toLocaleDateString('zh-TW');
-
-        prod.stock = newStock;
-        prod.location = locName;
-        prod.date = updatedDate;
-
-        const movementRecord = {
-          type: type,
-          productName: prod.name,
-          location: locName,
-          qty: qty,
-          timestamp: new Date().toLocaleString('zh-TW'),
-          user: currentUser ? `用戶 (${currentUser.uid.slice(0, 5)})` : '本地用戶',
-          createdAt: Date.now()
-        };
-        store.movements.unshift(movementRecord);
-
-        renderOverview();
-        renderInventoryTable();
-        renderMovementLogs();
-        document.getElementById('movementForm').reset();
-
-        if (currentUser) {
-          await updateDoc(doc(productsColRef, prod.id), {
-            stock: newStock,
-            location: locName,
-            date: updatedDate
-          });
-          await addDoc(movementsColRef, movementRecord);
-          showToast(type === 'inbound' ? `成功入倉 ${qty} 個！` : `庫存已校正為 ${qty}！`, 'success');
-        } else {
-          showToast(`已於本地更新`, 'success');
-        }
-      } catch (err) {
-        showToast(err.message || "更新失敗", 'error');
-      }
-    }
-    window.handleMovementSubmit = handleMovementSubmit;
-
-    async function handleCreateWithdrawal(e) {
-      e.preventDefault();
-      try {
-        const applicant = document.getElementById('withApplicant').value;
-        const purpose = document.getElementById('withPurpose').value;
-        const newId = `WO-${new Date().toISOString().slice(0,10).replace(/-/g,'')}-${Math.floor(100+Math.random()*900)}`;
-
-        const newWithdrawal = {
-          id: newId,
-          applicant: applicant,
-          purpose: purpose,
-          status: 'completed',
-          date: new Date().toLocaleDateString('zh-TW'),
-          createdAt: Date.now()
-        };
-
-        store.withdrawals.unshift(newWithdrawal);
-        renderWithdrawals();
-        renderOverview();
-        closeModal('modal-create-withdrawal');
-
-        if (currentUser) {
-          await addDoc(withdrawalsColRef, newWithdrawal);
-          showToast("提取單已成功建立！", 'success');
-        } else {
-          showToast("提取單已於本地建立", 'success');
-        }
-      } catch (err) {
-        showToast("建立提取單失敗: " + err.message, "error");
-      }
-    }
-    window.handleCreateWithdrawal = handleCreateWithdrawal;
-
-    async function handleAddLocation(e) {
-      e.preventDefault();
-      try {
-        const name = document.getElementById('locName').value;
-        const code = document.getElementById('locCode').value;
-        const cap = document.getElementById('locCapacity').value;
-
-        const newLoc = {
-          name: name,
-          code: code,
-          capacity: cap ? parseInt(cap) : null
-        };
-
-        store.locations.push(newLoc);
-        renderLocations();
-        closeModal('modal-add-location');
-
-        if (currentUser) {
-          await addDoc(locationsColRef, newLoc);
-          showToast(`貨位 [${name}] 新增成功！`, 'success');
-        } else {
-          showToast(`貨位 [${name}] 已新增於本地`, 'success');
-        }
-      } catch (err) {
-        showToast("新增貨位失敗: " + err.message, "error");
-      }
-    }
-    window.handleAddLocation = handleAddLocation;
-
-    async function handleCSVImport(e) {
-      e.preventDefault();
-      const rawText = document.getElementById('csvTextArea').value.trim();
-      if (!rawText) {
-        showToast("請提供 CSV 內容或選擇檔案！", "error");
-        return;
-      }
-
-      const lines = rawText.split(/\r?\n/);
-      let successCount = 0;
-      let errorCount = 0;
-      const updatedDate = new Date().toLocaleDateString('zh-TW');
-
-      const btnSubmit = document.getElementById('btnImportSubmit');
-      if (btnSubmit) btnSubmit.disabled = true;
-
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i].trim();
-        if (!line) continue;
-        if (i === 0 && (line.includes("貨品編號") || line.includes("ID") || line.includes("id"))) continue;
-
-        const cols = line.split(',').map(c => c.trim().replace(/^"(.*)"$/, '$1'));
-        if (cols.length < 2) continue;
-
-        const [id, name, location = '細倉1樓', stockStr = '0', minStr = '5', unit = '個'] = cols;
-        if (!id || !name) { errorCount++; continue; }
-
-        const stock = parseInt(stockStr) || 0;
-        const min = parseInt(minStr) || 5;
-
-        const item = { id, name, location: location || '未分配', stock, min, unit: unit || '個', date: updatedDate };
-
-        const idx = store.products.findIndex(p => p.id === id);
-        if (idx >= 0) store.products[idx] = item;
-        else store.products.push(item);
-
-        if (currentUser) {
-          try {
-            await setDoc(doc(productsColRef, id), item, { merge: true });
-            successCount++;
-          } catch (err) {
-            console.error(`匯入失敗 (第 ${i+1} 行):`, err);
-            errorCount++;
-          }
-        } else {
-          successCount++;
-        }
-      }
-
-      if (btnSubmit) btnSubmit.disabled = false;
-      closeModal('modal-import-csv');
-      document.getElementById('csvTextArea').value = '';
-      document.getElementById('csvFileInput').value = '';
-
-      renderOverview();
-      renderInventoryTable();
-      populateMovementSelects();
-      populateLabelSelect();
-
-      if (successCount > 0) {
-        showToast(`成功批次匯入 ${successCount} 筆數據！`, 'success');
-      } else {
-        showToast("匯入失敗，請檢查資料格式", 'error');
-      }
-    }
-    window.handleCSVImport = handleCSVImport;
-
-    window.renderOverview = renderOverview;
-    window.renderInventoryTable = renderInventoryTable;
-    window.sortTable = sortTable;
-    window.changePage = changePage;
-    window.toggleMovementForm = toggleMovementForm;
-    window.editProduct = editProduct;
-    window.populateProdLocationSelect = populateProdLocationSelect;
-    window.handleProdLocationSelectChange = handleProdLocationSelectChange;
-    window.generateBarcodePreview = generateBarcodePreview;
-    window.handleGlobalSearch = handleGlobalSearch;
-    window.downloadCSVTemplate = downloadCSVTemplate;
-    window.parseCSVFile = parseCSVFile;
 
     window.onload = function() {
       initAuth();
