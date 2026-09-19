@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>新力機械 - 倉存管理系統</title>
+  <title>智倉 WAREHOUSE FLOW - 倉儲管理系統</title>
 
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -53,8 +53,8 @@
               <i class="fa-solid fa-boxes-stacked text-base"></i>
             </div>
             <div class="sidebar-text">
-              <h1 class="font-black text-slate-900 text-base leading-none tracking-tight">倉存管理系統</h1>
-              <span class="text-[10px] font-bold tracking-widest text-slate-400 uppercase">New Tech Motor</span>
+              <h1 class="font-black text-slate-900 text-base leading-none tracking-tight">智倉 FLOW</h1>
+              <span class="text-[10px] font-bold tracking-widest text-slate-400 uppercase">Warehouse System</span>
             </div>
           </div>
           <button onclick="toggleSidebar()" class="text-slate-400 hover:text-slate-600 md:flex hidden p-1.5 rounded-lg hover:bg-slate-100 transition">
@@ -157,8 +157,8 @@
                   <i class="fa-solid fa-cubes"></i>
                   <span>INVENTORY OVERVIEW</span>
                 </div>
-                <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight">倉存管理系統</h1>
-                <p class="text-xs md:text-sm text-slate-300">即時掌握存量、貨位同待辦流程。</p>
+                <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight">今日貨倉，一目了然</h1>
+                <p class="text-xs md:text-sm text-slate-300">即時掌握存量、貨位同待辦流程。即時連線正常。</p>
               </div>
 
               <div class="flex items-center gap-3">
@@ -438,7 +438,8 @@
         <div id="view-location" class="hidden space-y-6">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h2 class="text-2xl font-black text-slate-900">廠房貨架地圖</h2>
+              <h2 class="text-2xl font-black text-slate-900">三層鑽研式 (3-Tier) 廠房貨架地圖</h2>
+              <p class="text-xs text-slate-500 mt-1">【第一層：點擊全區圖】➔【第二層：查看分區 10 個貨架圖陣】➔【第三層：點擊貨架彈出實存物品卡】</p>
             </div>
             <div class="flex items-center gap-2">
               <button onclick="openModal('modal-add-location')" class="px-4 py-2 bg-slate-900 text-white font-semibold text-xs rounded-xl transition shadow-md flex items-center gap-2">
@@ -452,7 +453,7 @@
             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
               <div class="flex items-center space-x-3">
                 <div class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></div>
-                <span class="font-black text-slate-800 text-sm">廠房全區平面圖 (Workshop Vector Floorplan)</span>
+                <span class="font-black text-slate-800 text-sm">【第一層】廠房全區官方 SVG 實景平面圖 (Workshop Vector Floorplan)</span>
               </div>
               <div class="flex items-center space-x-4 text-[11px] text-slate-500">
                 <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-sky-500"></span> 正常存量</span>
@@ -561,7 +562,7 @@
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
               <div class="flex items-center space-x-3">
                 <span class="w-3.5 h-3.5 rounded-full bg-sky-600"></span>
-                <h3 id="selectedZoneTitle" class="font-black text-slate-900 text-base">分區貨架網格：細倉</h3>
+                <h3 id="selectedZoneTitle" class="font-black text-slate-900 text-base">【第二層】分區貨架網格：細倉</h3>
               </div>
               
               <!-- Sub-floor filter toggle for 細倉 -->
@@ -1799,17 +1800,34 @@
       const zones = ['白棚', '細倉', '綠棚A', '綠棚B', '綠棚C', '工作棚', '辦公室', '大倉'];
       
       zones.forEach(z => {
+        // 篩選屬於該分區的貨品
         const zoneItems = store.products.filter(p => p.location && p.location.includes(z));
-        const hasLowStock = zoneItems.some(p => p.stock <= p.min);
+        
+        // 計算該分區的實時總庫存件數與有存貨品項
+        const totalStockQty = zoneItems.reduce((acc, p) => acc + (Number(p.stock) || 0), 0);
+        const activeStockItems = zoneItems.filter(p => (Number(p.stock) || 0) > 0);
+        
+        // 僅當有存貨且數量低於/等於預警門檻時，才觸發低存量紅燈預警
+        const hasLowStock = activeStockItems.some(p => Number(p.stock) <= Number(p.min || 0));
+
         const countEl = document.getElementById(`count-${z}`);
         const dotEl = document.getElementById(`dot-${z}`);
         const groupEl = document.getElementById(`zone-${z}`);
 
-        if (countEl) countEl.textContent = zoneItems.length;
+        // 顯示實時總庫存件數 (如無存貨則顯示 0)
+        if (countEl) countEl.textContent = totalStockQty;
+
         if (dotEl) {
-          if (zoneItems.length === 0) dotEl.setAttribute('fill', '#cbd5e1');
-          else if (hasLowStock) dotEl.setAttribute('fill', '#f43f5e');
-          else dotEl.setAttribute('fill', '#0284c7');
+          if (totalStockQty === 0) {
+            // 無存貨 / 空置時顯示灰色
+            dotEl.setAttribute('fill', '#cbd5e1');
+          } else if (hasLowStock) {
+            // 有低存量警報時顯示紅色
+            dotEl.setAttribute('fill', '#f43f5e');
+          } else {
+            // 正常存量時顯示藍色
+            dotEl.setAttribute('fill', '#0284c7');
+          }
         }
 
         if (groupEl) {
