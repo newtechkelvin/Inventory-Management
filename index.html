@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>智倉 WAREHOUSE FLOW - 倉儲管理系統</title>
+  <title>新力機械倉存管理系統</title>
 
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -53,8 +53,8 @@
               <i class="fa-solid fa-boxes-stacked text-base"></i>
             </div>
             <div class="sidebar-text">
-              <h1 class="font-black text-slate-900 text-base leading-none tracking-tight">智倉 FLOW</h1>
-              <span class="text-[10px] font-bold tracking-widest text-slate-400 uppercase">Warehouse System</span>
+              <h1 class="font-black text-slate-900 text-base leading-none tracking-tight">新力機械</h1>
+              <span class="text-[10px] font-bold tracking-widest text-slate-400 uppercase">倉存管理系統</span>
             </div>
           </div>
           <button onclick="toggleSidebar()" class="text-slate-400 hover:text-slate-600 md:flex hidden p-1.5 rounded-lg hover:bg-slate-100 transition">
@@ -91,7 +91,7 @@
 
           <button id="nav-location" onclick="switchTab('location')" class="w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition group">
             <i class="fa-solid fa-map-location-dot text-sm shrink-0 w-5 text-center"></i>
-            <span class="sidebar-text truncate">貨位互動平面圖</span>
+            <span class="sidebar-text truncate">倉庫及貨架位置</span>
           </button>
 
           <button id="nav-labels" onclick="switchTab('labels')" class="w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition group">
@@ -130,19 +130,14 @@
           <!-- Global Quick Search -->
           <div class="relative hidden sm:block w-48 md:w-64">
             <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-            <input type="text" onkeyup="if(event.key==='Enter') handleGlobalSearch(this.value)" placeholder="快速全局搜尋 (Enter)..." class="w-full bg-slate-100 text-slate-800 text-xs pl-9 pr-3 py-2 rounded-xl border border-transparent focus:bg-white focus:border-sky-500 focus:outline-none transition">
+            <input type="text" onkeyup="if(event.key==='Enter') handleGlobalSearch(this.value)" placeholder="快速全網搜尋..." class="w-full bg-slate-100 text-slate-800 text-xs pl-9 pr-3 py-2 rounded-xl border border-transparent focus:bg-white focus:border-sky-500 focus:outline-none transition">
           </div>
 
           <!-- Quick Excel Smart Paste Button in Header -->
           <button onclick="openModal('modal-import-csv')" class="px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200/80 font-bold text-xs rounded-xl transition flex items-center gap-1.5 shadow-sm">
             <i class="fa-solid fa-file-excel text-emerald-600"></i>
-            <span class="hidden sm:inline">Excel 複製貼上</span>
+            <span class="hidden sm:inline">Excel 極速批次匯入</span>
           </button>
-
-          <!-- User Profile Icon -->
-          <div class="w-9 h-9 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold text-xs shadow-sm">
-            ADM
-          </div>
         </div>
       </header>
 
@@ -155,11 +150,10 @@
               <div class="space-y-2">
                 <div class="flex items-center space-x-2 text-sky-400 text-xs font-extrabold uppercase tracking-widest">
                   <i class="fa-solid fa-cubes"></i>
-                  <span>INVENTORY OVERVIEW</span>
+                  <span>Inventory Management System</span>
                 </div>
-                <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight">今日貨倉，一目了然</h1>
-                <p class="text-xs md:text-sm text-slate-300">即時掌握存量、貨位同待辦流程。即時連線正常。</p>
-              </div>
+                <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight">倉存管理系統</h1>
+                      </div>
 
               <div class="flex items-center gap-3">
                 <button onclick="switchTab('inventory')" class="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 backdrop-blur-md text-white font-semibold text-xs transition border border-white/10 flex items-center gap-2">
@@ -256,7 +250,7 @@
             </div>
             <div class="flex items-center gap-2">
               <button onclick="openModal('modal-import-csv')" class="px-4 py-2 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 text-emerald-800 font-bold text-xs rounded-xl transition flex items-center gap-2 shadow-sm">
-                <i class="fa-solid fa-paste text-emerald-600"></i> <span>Excel 極速貼上匯入</span>
+                <i class="fa-solid fa-paste text-emerald-600"></i> <span>Excel 極速批次匯入</span>
               </button>
               <button onclick="exportToCSV()" class="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-xs rounded-xl transition flex items-center gap-2">
                 <i class="fa-solid fa-download"></i> <span>匯出 CSV</span>
@@ -438,9 +432,8 @@
         <div id="view-location" class="hidden space-y-6">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h2 class="text-2xl font-black text-slate-900">三層鑽研式 (3-Tier) 廠房貨架地圖</h2>
-              <p class="text-xs text-slate-500 mt-1">【第一層：點擊全區圖】➔【第二層：查看分區 10 個貨架圖陣】➔【第三層：點擊貨架彈出實存物品卡】</p>
-            </div>
+              <h2 class="text-2xl font-black text-slate-900">工場各存貨點地圖</h2>
+                 </div>
             <div class="flex items-center gap-2">
               <button onclick="openModal('modal-add-location')" class="px-4 py-2 bg-slate-900 text-white font-semibold text-xs rounded-xl transition shadow-md flex items-center gap-2">
                 <i class="fa-solid fa-plus"></i> <span>新增貨架位</span>
@@ -453,7 +446,7 @@
             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
               <div class="flex items-center space-x-3">
                 <div class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></div>
-                <span class="font-black text-slate-800 text-sm">【第一層】廠房全區官方 SVG 實景平面圖 (Workshop Vector Floorplan)</span>
+                <span class="font-black text-slate-800 text-sm">工場各存貨點位置 (Workshop Vector Floorplan)</span>
               </div>
               <div class="flex items-center space-x-4 text-[11px] text-slate-500">
                 <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-sky-500"></span> 正常存量</span>
@@ -562,7 +555,7 @@
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
               <div class="flex items-center space-x-3">
                 <span class="w-3.5 h-3.5 rounded-full bg-sky-600"></span>
-                <h3 id="selectedZoneTitle" class="font-black text-slate-900 text-base">【第二層】分區貨架網格：細倉</h3>
+                <h3 id="selectedZoneTitle" class="font-black text-slate-900 text-base">倉內各貨架概覽：細倉</h3>
               </div>
               
               <!-- Sub-floor filter toggle for 細倉 -->
