@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>智倉 WAREHOUSE FLOW - 倉儲管理系統</title>
-  
+  <title>新力倉儲管理系統</title>
+
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Font Awesome Icons -->
@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  
+
   <!-- JsBarcode for Real Barcodes -->
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
   <!-- QRCode.js for Real QR Codes -->
@@ -28,8 +28,12 @@
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
     ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-    .rack-grid-item { transition: all 0.2s ease-in-out; }
-    .rack-grid-item:hover { transform: translateY(-2px); }
+    .rack-card-hover { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+    .rack-card-hover:hover { transform: translateY(-3px); box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); }
+    
+    /* Interactive Zone Hover Effects */
+    .zone-shape { transition: all 0.25s ease; cursor: pointer; }
+    .zone-shape:hover { filter: brightness(0.92) drop-shadow(0 0 10px rgba(2, 132, 199, 0.6)); transform: scale(1.008); }
   </style>
 </head>
 
@@ -49,8 +53,8 @@
               <i class="fa-solid fa-boxes-stacked text-base"></i>
             </div>
             <div class="sidebar-text">
-              <h1 class="font-black text-slate-900 text-base leading-none tracking-tight">智倉 FLOW</h1>
-              <span class="text-[10px] font-bold tracking-widest text-slate-400 uppercase">Warehouse System</span>
+              <h1 class="font-black text-slate-900 text-base leading-none tracking-tight">倉儲管理系統</h1>
+              <span class="text-[10px] font-bold tracking-widest text-slate-400 uppercase">New Tech Motor</span>
             </div>
           </div>
           <button onclick="toggleSidebar()" class="text-slate-400 hover:text-slate-600 md:flex hidden p-1.5 rounded-lg hover:bg-slate-100 transition">
@@ -58,7 +62,7 @@
           </button>
         </div>
 
-        <!-- Navigation Links (7 Core Tabs) -->
+        <!-- Navigation Links -->
         <nav class="p-3 space-y-1">
           <button id="nav-overview" onclick="switchTab('overview')" class="w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl font-semibold text-xs text-sky-700 bg-sky-50 transition group">
             <i class="fa-solid fa-table-cells-large text-sm shrink-0 w-5 text-center"></i>
@@ -106,14 +110,14 @@
       <div class="p-4 border-t border-slate-100">
         <div class="flex items-center space-x-3 sidebar-text">
           <div class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></div>
-          <span class="text-xs font-semibold text-slate-500">雲端同步連線中</span>
+          <span id="cloudStatusText" class="text-xs font-semibold text-slate-500">雲端同步連線中</span>
         </div>
       </div>
     </aside>
 
     <!-- Main Workspace Area -->
     <main class="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto">
-      
+
       <header class="h-16 bg-white/80 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-30 px-4 md:px-8 flex items-center justify-between shrink-0">
         <div class="flex items-center space-x-4">
           <button onclick="toggleSidebar()" class="p-2 rounded-xl text-slate-600 hover:bg-slate-100 transition">
@@ -128,6 +132,12 @@
             <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
             <input type="text" onkeyup="if(event.key==='Enter') handleGlobalSearch(this.value)" placeholder="快速全局搜尋 (Enter)..." class="w-full bg-slate-100 text-slate-800 text-xs pl-9 pr-3 py-2 rounded-xl border border-transparent focus:bg-white focus:border-sky-500 focus:outline-none transition">
           </div>
+
+          <!-- Quick Excel Smart Paste Button in Header -->
+          <button onclick="openModal('modal-import-csv')" class="px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200/80 font-bold text-xs rounded-xl transition flex items-center gap-1.5 shadow-sm">
+            <i class="fa-solid fa-file-excel text-emerald-600"></i>
+            <span class="hidden sm:inline">Excel 複製貼上</span>
+          </button>
 
           <!-- User Profile Icon -->
           <div class="w-9 h-9 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold text-xs shadow-sm">
@@ -147,8 +157,8 @@
                   <i class="fa-solid fa-cubes"></i>
                   <span>INVENTORY OVERVIEW</span>
                 </div>
-                <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight">今日貨倉，一目了然</h1>
-                <p class="text-xs md:text-sm text-slate-300">即時掌握存量、貨位同待辦流程。即時連線正常。</p>
+                <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight">倉儲管理系統</h1>
+                <p class="text-xs md:text-sm text-slate-300">即時掌握存量、貨位同待辦流程。</p>
               </div>
 
               <div class="flex items-center gap-3">
@@ -245,8 +255,8 @@
               <p class="text-xs text-slate-500 mt-1">以貨品、編號、倉庫、貨位快速查找；結餘由完整異動計算。</p>
             </div>
             <div class="flex items-center gap-2">
-              <button onclick="openModal('modal-import-csv')" class="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-xs rounded-xl transition flex items-center gap-2">
-                <i class="fa-solid fa-file-import"></i> <span>批次匯入</span>
+              <button onclick="openModal('modal-import-csv')" class="px-4 py-2 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 text-emerald-800 font-bold text-xs rounded-xl transition flex items-center gap-2 shadow-sm">
+                <i class="fa-solid fa-paste text-emerald-600"></i> <span>Excel 極速貼上匯入</span>
               </button>
               <button onclick="exportToCSV()" class="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-xs rounded-xl transition flex items-center gap-2">
                 <i class="fa-solid fa-download"></i> <span>匯出 CSV</span>
@@ -266,10 +276,16 @@
 
             <div class="flex items-center gap-2 w-full md:w-auto">
               <select id="warehouseFilter" onchange="renderInventoryTable()" class="bg-slate-50 text-xs text-slate-700 py-2.5 px-3 rounded-xl border border-slate-200 focus:bg-white focus:outline-none">
-                <option value="ALL">全部倉庫</option>
-                <option value="細倉1樓">細倉1樓</option>
-                <option value="地下">地下</option>
-                <option value="寫字樓">寫字樓</option>
+                <option value="ALL">全部區域</option>
+                <option value="白棚">白棚</option>
+                <option value="細倉1樓">細倉 1樓</option>
+                <option value="細倉2樓">細倉 2樓</option>
+                <option value="綠棚A">綠棚 A</option>
+                <option value="綠棚B">綠棚 B</option>
+                <option value="綠棚C">綠棚 C</option>
+                <option value="工作棚">工作棚</option>
+                <option value="辦公室">辦公室</option>
+                <option value="大倉">大倉</option>
               </select>
 
               <select id="statusFilter" onchange="renderInventoryTable()" class="bg-slate-50 text-xs text-slate-700 py-2.5 px-3 rounded-xl border border-slate-200 focus:bg-white focus:outline-none">
@@ -333,7 +349,6 @@
           </div>
 
           <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            <!-- Form Card -->
             <div class="lg:col-span-6 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm space-y-5">
               <div class="flex p-1 bg-slate-100 rounded-xl">
                 <button id="tabInboundForm" onclick="toggleMovementForm('inbound')" class="flex-1 py-2 text-center rounded-lg bg-white font-bold text-xs shadow-sm text-slate-800">↓ 入倉登記</button>
@@ -381,7 +396,6 @@
               </form>
             </div>
 
-            <!-- Activity Log -->
             <div class="lg:col-span-6 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm space-y-4">
               <h3 class="font-bold text-slate-900 text-sm">最近庫存異動紀錄</h3>
               <div id="movementLogList" class="space-y-3 divide-y divide-slate-100"></div>
@@ -420,40 +434,148 @@
           </div>
         </div>
 
-        <!-- VIEW 6: INTERACTIVE LOCATION CONTROL MAP -->
+        <!-- VIEW 6: 3-TIER INTERACTIVE LOCATION MAP -->
         <div id="view-location" class="hidden space-y-6">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h2 class="text-2xl font-black text-slate-900">貨位互動式平面圖</h2>
-              <p class="text-xs text-slate-500 mt-1">視覺化點擊倉庫 ➔ 樓層貨架 ➔ 直觀檢視擺放之實時貨品清單。</p>
+              <h2 class="text-2xl font-black text-slate-900">廠房貨架地圖</h2>
             </div>
             <div class="flex items-center gap-2">
-              <select id="mapWarehouseSelect" onchange="renderInteractiveMap()" class="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none">
-                <option value="細倉1樓">倉庫區：細倉1樓</option>
-                <option value="地下">倉庫區：地下</option>
-                <option value="寫字樓">倉庫區：寫字樓</option>
-              </select>
               <button onclick="openModal('modal-add-location')" class="px-4 py-2 bg-slate-900 text-white font-semibold text-xs rounded-xl transition shadow-md flex items-center gap-2">
-                <i class="fa-solid fa-plus"></i> <span>新增貨位</span>
+                <i class="fa-solid fa-plus"></i> <span>新增貨架位</span>
               </button>
             </div>
           </div>
 
-          <!-- Interactive Graphic Grid Canvas -->
-          <div class="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm space-y-6">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+          <!-- LEVEL 1: Exact Vector SVG Floorplan -->
+          <div class="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200/60 shadow-sm space-y-5">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
               <div class="flex items-center space-x-3">
-                <div class="w-3 h-3 rounded-full bg-emerald-500"></div>
-                <span id="currentMapTitle" class="font-black text-slate-800 text-sm">細倉1樓 實景貨架分佈網格</span>
+                <div class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></div>
+                <span class="font-black text-slate-800 text-sm">廠房全區平面圖 (Workshop Vector Floorplan)</span>
               </div>
               <div class="flex items-center space-x-4 text-[11px] text-slate-500">
-                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-sky-500"></span> 有存放貨品</span>
-                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-slate-300"></span> 空置貨位</span>
+                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-sky-500"></span> 正常存量</span>
+                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span> 低存量預警</span>
+                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-slate-300"></span> 空置區域</span>
               </div>
             </div>
 
-            <!-- Shelf Cards Grid -->
-            <div id="interactiveMapGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3"></div>
+            <!-- SVG Vector Floorplan directly containing user's exact polygon & rect attributes -->
+            <div class="relative w-full bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden p-3 sm:p-6 min-h-[380px] sm:min-h-[500px] flex items-center justify-center select-none shadow-inner">
+              <svg id="_圖層_1" data-name="圖層 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 652.363 529.551" class="w-full h-auto max-h-[550px] drop-shadow-2xl">
+                <g id="_圖層_2" data-name="圖層 2">
+                  <!-- Outer Factory Boundary Line & Passage Guides -->
+                  <g>
+                    <polygon points="92.958 245.218 124.928 207.758 114.598 80.178 165.538 69.188 197.078 71.098 278.948 206.098 298.858 234.988 331.828 244.018 383.908 239.768 443.418 225.628 451.758 240.248 476.248 275.128 509.098 331.038 556.408 374.998 575.518 397.458 580.298 440.458 409.348 480.238 382.478 484.418 351.068 477.698 309.148 460.388 285.038 444.408 269.508 419.168 92.958 245.218" fill="#f8fafc" stroke="#334155" stroke-width="2"/>
+                    <g>
+                      <polyline points="94.388 246.628 92.958 245.218 94.258 243.698" fill="none" stroke="#64748b" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>
+                      <line x1="96.928" y1="240.568" x2="122.288" y2="210.838" fill="none" stroke="#64748b" stroke-dasharray="0 0 4.113 4.113" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>
+                      <polyline points="123.628 209.278 124.928 207.758 124.758 205.758" fill="none" stroke="#64748b" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>
+                      <line x1="124.438" y1="201.778" x2="114.918" y2="84.158" fill="none" stroke="#64748b" stroke-dasharray="0 0 4 4" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>
+                      <polyline points="114.758 82.168 114.598 80.178 116.548 79.748" fill="none" stroke="#64748b" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>
+                      <polyline points="120.648 78.868 165.538 69.188 192.988 70.848" fill="none" stroke="#64748b" stroke-dasharray="0 0 4.195 4.195" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>
+                      <polyline points="195.078 70.978 197.078 71.098 198.118 72.808" fill="none" stroke="#64748b" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>
+                      <polyline points="200.168 76.188 278.948 206.098 298.858 234.988 331.828 244.018 383.908 239.768 439.548 226.548" fill="none" stroke="#64748b" stroke-dasharray="0 0 3.96 3.96" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>
+                      <polyline points="441.468 226.088 443.418 225.628 444.408 227.368" fill="none" stroke="#64748b" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>
+                      <polyline points="446.368 230.808 451.758 240.248 476.248 275.128 509.098 331.038 556.408 374.998 575.518 397.458 579.858 436.498" fill="none" stroke="#64748b" stroke-dasharray="0 0 3.964 3.964" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>
+                      <polyline points="580.078 438.468 580.298 440.458 578.348 440.908" fill="none" stroke="#64748b" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>
+                      <polyline points="574.438 441.828 409.348 480.238 382.478 484.418 351.068 477.698 309.148 460.388 285.038 444.408 269.508 419.168 95.818 248.038" fill="none" stroke="#64748b" stroke-dasharray="0 0 4.018 4.018" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>
+                    </g>
+                  </g>
+
+                  <!-- Zone 1: 細倉 (Exact rect from vector with 1F/2F support) -->
+                  <g id="zone-細倉" onclick="selectMapZone('細倉')" class="zone-shape group">
+                    <rect x="109.754" y="224.375" width="34.491" height="34.491" transform="translate(-137.351 173.591) rotate(-47.841)" fill="#ffffff" stroke="#0284c7" stroke-width="2.5"/>
+                    <text x="127" y="244" text-anchor="middle" font-weight="900" font-size="11" fill="#0f172a">細倉</text>
+                    <circle id="dot-細倉" cx="140" cy="225" r="7" fill="#0284c7"/>
+                    <text id="count-細倉" x="140" y="227.5" text-anchor="middle" font-size="7" font-weight="800" fill="#ffffff">0</text>
+                  </g>
+
+                  <!-- Zone 2: 白棚 (Exact rect from vector) -->
+                  <g id="zone-白棚" onclick="selectMapZone('白棚')" class="zone-shape group">
+                    <rect x="180.789" y="118.913" width="55.081" height="69.841" transform="translate(-46.767 109.203) rotate(-26.519)" fill="#e2e8f0" stroke="#0284c7" stroke-width="2.5"/>
+                    <text x="208" y="158" text-anchor="middle" font-weight="900" font-size="14" fill="#0f172a">白棚</text>
+                    <circle id="dot-白棚" cx="230" cy="128" r="8" fill="#0284c7"/>
+                    <text id="count-白棚" x="230" y="131" text-anchor="middle" font-size="8" font-weight="800" fill="#ffffff">0</text>
+                  </g>
+
+                  <!-- Zone 3: 工作棚 (Exact rect from vector) -->
+                  <g id="zone-工作棚" onclick="selectMapZone('工作棚')" class="zone-shape group">
+                    <rect x="418.79" y="259.247" width="67.867" height="103.085" transform="translate(-96.298 299.653) rotate(-33.307)" fill="#e2e8f0" stroke="#f59e0b" stroke-width="2.5"/>
+                    <text x="452" y="315" text-anchor="middle" font-weight="900" font-size="16" fill="#0f172a">工作棚</text>
+                    <circle id="dot-工作棚" cx="482" cy="270" r="8" fill="#f59e0b"/>
+                    <text id="count-工作棚" x="482" y="273" text-anchor="middle" font-size="8" font-weight="800" fill="#ffffff">0</text>
+                  </g>
+
+                  <!-- Zone 4: 辦公室 (Exact rect from vector) -->
+                  <g id="zone-辦公室" onclick="selectMapZone('辦公室')" class="zone-shape group">
+                    <rect x="375.601" y="416.865" width="94.022" height="52.291" transform="translate(-86.201 102.469) rotate(-12.556)" fill="#ffffff" stroke="#6366f1" stroke-width="2.5"/>
+                    <text x="422" y="447" text-anchor="middle" font-weight="900" font-size="13" fill="#0f172a">辦公室</text>
+                    <circle id="dot-辦公室" cx="462" cy="425" r="7" fill="#6366f1"/>
+                    <text id="count-辦公室" x="462" y="427.5" text-anchor="middle" font-size="7" font-weight="800" fill="#ffffff">0</text>
+                  </g>
+
+                  <!-- Zone 5: 綠棚A (Exact rect from vector) -->
+                  <g id="zone-綠棚A" onclick="selectMapZone('綠棚A')" class="zone-shape group">
+                    <rect x="149.336" y="258.099" width="40.021" height="50.441" transform="translate(-151.343 205.175) rotate(-45.438)" fill="#2e3940" stroke="#10b981" stroke-width="2.5"/>
+                    <text x="169" y="286" text-anchor="middle" font-weight="900" font-size="11" fill="#ffffff">綠棚A</text>
+                    <circle id="dot-綠棚A" cx="188" cy="265" r="7" fill="#10b981"/>
+                    <text id="count-綠棚A" x="188" y="267.5" text-anchor="middle" font-size="7" font-weight="800" fill="#ffffff">0</text>
+                  </g>
+
+                  <!-- Zone 6: 綠棚B (Exact rect from vector) -->
+                  <g id="zone-綠棚B" onclick="selectMapZone('綠棚B')" class="zone-shape group">
+                    <rect x="185.495" y="295.56" width="40.021" height="46.741" transform="translate(-165.928 241.561) rotate(-45.438)" fill="#2e3940" stroke="#10b981" stroke-width="2.5"/>
+                    <text x="205" y="322" text-anchor="middle" font-weight="900" font-size="11" fill="#ffffff">綠棚B</text>
+                    <circle id="dot-綠棚B" cx="223" cy="301" r="7" fill="#10b981"/>
+                    <text id="count-綠棚B" x="223" y="303.5" text-anchor="middle" font-size="7" font-weight="800" fill="#ffffff">0</text>
+                  </g>
+
+                  <!-- Zone 7: 綠棚C (Exact rect from vector) -->
+                  <g id="zone-綠棚C" onclick="selectMapZone('綠棚C')" class="zone-shape group">
+                    <rect x="217.578" y="335.437" width="29.841" height="35.491" transform="translate(-182.28 271.011) rotate(-45.438)" fill="#2e3940" stroke="#10b981" stroke-width="2.5"/>
+                    <text x="232" y="355" text-anchor="middle" font-weight="900" font-size="10" fill="#ffffff">綠棚C</text>
+                    <circle id="dot-綠棚C" cx="247" cy="338" r="6" fill="#10b981"/>
+                    <text id="count-綠棚C" x="247" y="340" text-anchor="middle" font-size="6" font-weight="800" fill="#ffffff">0</text>
+                  </g>
+
+                  <!-- Zone 8: 大倉 (Exact polygon from vector) -->
+                  <g id="zone-大倉" onclick="selectMapZone('大倉')" class="zone-shape group">
+                    <polygon points="569.108 409.038 565.388 392.538 547.778 396.478 550.918 413.088 477.498 429.448 483.468 456.248 575.238 435.808 569.108 409.038" fill="#ffffff" stroke="#0284c7" stroke-width="2.5"/>
+                    <text x="526" y="432" text-anchor="middle" font-weight="900" font-size="13" fill="#0f172a">大倉</text>
+                    <circle id="dot-大倉" cx="560" cy="410" r="7" fill="#0284c7"/>
+                    <text id="count-大倉" x="560" y="412.5" text-anchor="middle" font-size="7" font-weight="800" fill="#ffffff">0</text>
+                  </g>
+
+                  <!-- Red Entrance Gate Line (Exact rect from vector) -->
+                  <rect x="330.814" y="447.006" width="3.28" height="46.051" transform="translate(-226.122 609.49) rotate(-68.747)" fill="#e72637" stroke="#e72637" stroke-width="1"/>
+                  <text x="350" y="482" text-anchor="middle" font-size="10" font-weight="900" fill="#ef4444">▲ 正門 (Gate)</text>
+                </g>
+              </svg>
+            </div>
+          </div>
+
+          <!-- LEVEL 2: Zone Shelves Array Section (區域貨架配置陣列) -->
+          <div class="bg-white p-5 rounded-2xl border border-slate-200/60 shadow-sm space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+              <div class="flex items-center space-x-3">
+                <span class="w-3.5 h-3.5 rounded-full bg-sky-600"></span>
+                <h3 id="selectedZoneTitle" class="font-black text-slate-900 text-base">分區貨架網格：細倉</h3>
+              </div>
+              
+              <!-- Sub-floor filter toggle for 細倉 -->
+              <div id="subFloorFilterContainer" class="hidden items-center space-x-2 bg-slate-100 p-1 rounded-xl">
+                <button id="btnFloorAll" onclick="filterSubFloor('ALL')" class="px-3 py-1 rounded-lg text-xs font-bold bg-white text-slate-900 shadow-sm">全部樓層</button>
+                <button id="btnFloor1F" onclick="filterSubFloor('1樓')" class="px-3 py-1 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900">1 樓</button>
+                <button id="btnFloor2F" onclick="filterSubFloor('2樓')" class="px-3 py-1 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900">2 樓</button>
+              </div>
+
+              <span id="selectedZoneSummary" class="text-xs font-semibold text-slate-500">點擊下方任意貨架卡片即可查看該貨架詳細物品</span>
+            </div>
+
+            <!-- Shelf Cards Grid (點擊觸發第三層 Drawer) -->
+            <div id="interactiveShelfGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
           </div>
         </div>
 
@@ -470,7 +592,6 @@
               <select id="labelSelectProduct" onchange="generateBarcodePreview()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs focus:bg-white focus:outline-none"></select>
             </div>
 
-            <!-- Dynamic SVG Preview Card -->
             <div class="p-6 border-2 border-dashed border-slate-200 rounded-2xl text-center space-y-4 bg-slate-50/50">
               <div>
                 <p id="barcodeCode" class="font-mono font-black text-lg tracking-widest text-slate-800">0314-001</p>
@@ -478,11 +599,9 @@
               </div>
 
               <div class="flex flex-col sm:flex-row items-center justify-center gap-6 py-2 bg-white p-4 rounded-xl shadow-sm border border-slate-100">
-                <!-- Barcode SVG Target -->
                 <div class="flex flex-col items-center">
                   <svg id="barcodeSvg" class="max-w-full"></svg>
                 </div>
-                <!-- QR Code Target -->
                 <div class="flex flex-col items-center">
                   <div id="qrcodeCanvas" class="p-1.5 bg-white border border-slate-200 rounded-lg"></div>
                   <span class="text-[9px] text-slate-400 font-mono mt-1">QR CODE</span>
@@ -519,7 +638,6 @@
             </div>
           </div>
 
-          <!-- Charts Grid -->
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div class="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm space-y-4">
               <h3 class="font-bold text-slate-900 text-sm">各倉庫存量佔比</h3>
@@ -555,7 +673,7 @@
         <input type="hidden" id="editProductId" value="">
         <div>
           <label class="block font-bold text-slate-700 mb-1">貨品編號 *</label>
-          <input type="text" id="prodId" required placeholder="例如 0314-015" class="w-full border border-slate-200 rounded-xl p-2.5 focus:border-sky-500 focus:outline-none">
+          <input type="text" id="prodId" required placeholder="例如 N0811006 或 0314-015" class="w-full border border-slate-200 rounded-xl p-2.5 focus:border-sky-500 focus:outline-none">
         </div>
         <div>
           <label class="block font-bold text-slate-700 mb-1">貨品名稱 *</label>
@@ -564,7 +682,7 @@
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block font-bold text-slate-700 mb-1">單位 *</label>
-            <input type="text" id="prodUnit" required placeholder="個 / 支 / 塊" value="個" class="w-full border border-slate-200 rounded-xl p-2.5 focus:border-sky-500 focus:outline-none">
+            <input type="text" id="prodUnit" required placeholder="個 / 張 / 條 / 套" value="個" class="w-full border border-slate-200 rounded-xl p-2.5 focus:border-sky-500 focus:outline-none">
           </div>
           <div>
             <label class="block font-bold text-slate-700 mb-1">安全預警門檻 *</label>
@@ -579,7 +697,7 @@
           <label class="block font-bold text-slate-700 mb-1">預設貨位 *</label>
           <div class="space-y-1.5">
             <select id="prodLocationSelect" onchange="handleProdLocationSelectChange(this.value)" class="w-full border border-slate-200 rounded-xl p-2.5 focus:border-sky-500 focus:outline-none bg-slate-50 text-slate-700"></select>
-            <input type="text" id="prodLocation" required placeholder="手動自訂貨位 (如：細倉1樓 / 3-3)" class="w-full border border-slate-200 rounded-xl p-2.5 focus:border-sky-500 focus:outline-none">
+            <input type="text" id="prodLocation" required placeholder="手動自訂貨位 (如：細倉1樓 / 貨架 1-1)" class="w-full border border-slate-200 rounded-xl p-2.5 focus:border-sky-500 focus:outline-none">
           </div>
         </div>
         <div class="pt-3 flex items-center justify-end space-x-2">
@@ -590,36 +708,60 @@
     </div>
   </div>
 
-  <!-- MODAL 2: Create PO Order -->
+  <!-- MODAL 2: Create PO Order with Excel Paste Support -->
   <div id="modal-create-po" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-lg overflow-hidden">
-      <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-        <h3 class="font-bold text-slate-900 text-sm">建立 PO 採購預錄單</h3>
-        <button onclick="closeModal('modal-create-po')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+    <div class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-2xl overflow-hidden">
+      <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-900 text-white">
+        <div class="flex items-center space-x-2">
+          <i class="fa-solid fa-file-circle-plus text-sky-400 text-base"></i>
+          <h3 class="font-bold text-white text-sm">建立 PO 採購預錄單</h3>
+        </div>
+        <button onclick="closeModal('modal-create-po')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-base"></i></button>
       </div>
-      <form onsubmit="handleSavePoOrder(event)" class="p-6 space-y-4 text-xs">
-        <div class="grid grid-cols-2 gap-3">
+      
+      <form onsubmit="handleSavePoOrder(event)" class="p-6 space-y-4 text-xs max-h-[85vh] overflow-y-auto">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label class="block font-bold text-slate-700 mb-1">PO 採購單號 *</label>
             <input type="text" id="poNumberInput" required placeholder="例如 PO-2026-009" class="w-full border border-slate-200 rounded-xl p-2.5 focus:outline-none focus:border-sky-500">
           </div>
           <div>
-            <label class="block font-bold text-slate-700 mb-1">供應商名稱 *</label>
-            <input type="text" id="poSupplierInput" required placeholder="例如 日本汽車零件廠" class="w-full border border-slate-200 rounded-xl p-2.5 focus:outline-none focus:border-sky-500">
+            <label class="block font-bold text-slate-700 mb-1">供應商 / 採購項目 *</label>
+            <input type="text" id="poSupplierInput" required placeholder="例如 珠海零件採購 / 日本汽車零件" class="w-full border border-slate-200 rounded-xl p-2.5 focus:outline-none focus:border-sky-500">
+          </div>
+        </div>
+
+        <!-- Excel Smart Paste Quick Box inside PO Form -->
+        <div class="bg-emerald-50/70 border border-emerald-200 p-3.5 rounded-2xl space-y-2">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+              <i class="fa-solid fa-file-excel text-emerald-600 text-sm"></i>
+              <span class="font-extrabold text-emerald-950 text-xs">Excel / 試算表極速貼上入單</span>
+            </div>
+            <span class="text-[10px] text-emerald-700 font-medium">從 Excel 複製多行格子，直接貼入下方</span>
+          </div>
+          <textarea id="poExcelPasteBox" rows="2" placeholder="直接在此按下 Ctrl+V 貼上 Excel 複製的格子 (例如：N0811006  開關介字貼  4  張)..." class="w-full font-mono text-[11px] p-2.5 border border-emerald-300 rounded-xl bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
+          <div class="flex justify-end">
+            <button type="button" onclick="parsePoExcelPaste()" class="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs rounded-lg transition shadow-sm flex items-center gap-1">
+              <i class="fa-solid fa-bolt text-[11px]"></i>
+              <span>一鍵剖析並自動帶入表單</span>
+            </button>
           </div>
         </div>
 
         <div>
-          <label class="block font-bold text-slate-700 mb-1">預計採購貨品與數量 *</label>
+          <div class="flex items-center justify-between mb-2">
+            <label class="block font-bold text-slate-700">預計採購貨品清單 *</label>
+            <button type="button" onclick="addPoItemRow()" class="text-sky-600 hover:text-sky-700 font-bold text-xs flex items-center gap-1">
+              <i class="fa-solid fa-plus text-[10px]"></i> 增加一項物品
+            </button>
+          </div>
           <div id="poItemsContainer" class="space-y-2"></div>
-          <button type="button" onclick="addPoItemRow()" class="mt-2 text-sky-600 hover:text-sky-700 font-bold text-xs flex items-center gap-1">
-            <i class="fa-solid fa-plus text-[10px]"></i> 增加一項物品
-          </button>
         </div>
 
-        <div class="pt-3 flex items-center justify-end space-x-2">
+        <div class="pt-3 flex items-center justify-end space-x-2 border-t border-slate-100">
           <button type="button" onclick="closeModal('modal-create-po')" class="px-4 py-2 border border-slate-200 rounded-xl text-slate-600 font-semibold">取消</button>
-          <button type="submit" class="px-4 py-2 bg-slate-900 text-white rounded-xl font-semibold hover:bg-slate-800">儲存預錄單</button>
+          <button type="submit" class="px-5 py-2.5 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 shadow-md">儲存預錄單</button>
         </div>
       </form>
     </div>
@@ -637,9 +779,7 @@
       </div>
       <form onsubmit="handleConfirmPoReceive(event)" class="p-6 space-y-4 text-xs">
         <input type="hidden" id="activePoDocId" value="">
-        
         <div id="poReceiveItemsList" class="space-y-3 divide-y divide-slate-100 max-h-80 overflow-y-auto pr-1"></div>
-
         <div class="pt-3 flex items-center justify-end space-x-2">
           <button type="button" onclick="closeModal('modal-receive-po')" class="px-4 py-2 border border-slate-200 rounded-xl text-slate-600 font-semibold">取消</button>
           <button type="submit" class="px-4 py-2 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-500 shadow-md flex items-center gap-1.5">
@@ -718,19 +858,32 @@
     </div>
   </div>
 
-  <!-- MODAL 6: Shelf Item Drawer Card -->
+  <!-- LEVEL 3 MODAL: Shelf Drawer / Item Details Modal (第三層：貨架實存物品彈窗) -->
   <div id="modal-shelf-details" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-md overflow-hidden">
-      <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-        <div>
-          <h3 id="shelfDetailTitle" class="font-black text-slate-900 text-sm">細倉1樓 / 3-3 存放貨品</h3>
-          <p id="shelfDetailCapacity" class="text-[10px] text-slate-400">容量上限 1000 個</p>
+    <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-200">
+      <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <div class="w-8 h-8 rounded-xl bg-sky-500 text-slate-950 flex items-center justify-center font-bold text-sm">
+            <i class="fa-solid fa-cubes"></i>
+          </div>
+          <div>
+            <h3 id="shelfDetailTitle" class="font-black text-white text-base">細倉1樓 / 貨架 1-1 實存物品</h3>
+            <p id="shelfDetailCapacity" class="text-[11px] text-sky-300">目前共存放 3 種零件品項</p>
+          </div>
         </div>
-        <button onclick="closeModal('modal-shelf-details')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+        <button onclick="closeModal('modal-shelf-details')" class="text-slate-400 hover:text-white transition"><i class="fa-solid fa-xmark text-lg"></i></button>
       </div>
-      <div class="p-6 space-y-3 text-xs">
-        <div id="shelfDetailItemsList" class="space-y-2 max-h-80 overflow-y-auto"></div>
-        <button onclick="closeModal('modal-shelf-details')" class="w-full bg-slate-900 text-white font-bold py-2.5 rounded-xl">關閉</button>
+
+      <div class="p-6 space-y-4 text-xs bg-slate-50/50">
+        <div id="shelfDetailItemsList" class="space-y-2.5 max-h-96 overflow-y-auto pr-1"></div>
+        
+        <div class="pt-2 flex items-center justify-between gap-3">
+          <button onclick="switchTab('movement'); closeModal('modal-shelf-details');" class="px-4 py-2.5 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-xl transition shadow-sm flex items-center gap-1.5">
+            <i class="fa-solid fa-plus-minus text-xs"></i>
+            <span>前往此貨位入倉/調整</span>
+          </button>
+          <button onclick="closeModal('modal-shelf-details')" class="px-5 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold rounded-xl transition">關閉</button>
+        </div>
       </div>
     </div>
   </div>
@@ -744,12 +897,22 @@
       </div>
       <form onsubmit="handleAddLocation(event)" class="p-6 space-y-3 text-xs">
         <div>
-          <label class="block font-bold text-slate-700 mb-1">貨位名稱 *</label>
-          <input type="text" id="locName" required placeholder="細倉1樓 / 6-1" class="w-full border border-slate-200 rounded-xl p-2.5 focus:outline-none focus:border-sky-500">
+          <label class="block font-bold text-slate-700 mb-1">貨位區域名稱 *</label>
+          <select id="locZone" class="w-full border border-slate-200 rounded-xl p-2.5 focus:outline-none focus:border-sky-500 bg-slate-50">
+            <option value="白棚">白棚</option>
+            <option value="細倉1樓">細倉 1樓</option>
+            <option value="細倉2樓">細倉 2樓</option>
+            <option value="綠棚A">綠棚A</option>
+            <option value="綠棚B">綠棚B</option>
+            <option value="綠棚C">綠棚C</option>
+            <option value="工作棚">工作棚</option>
+            <option value="辦公室">辦公室</option>
+            <option value="大倉">大倉</option>
+          </select>
         </div>
         <div>
-          <label class="block font-bold text-slate-700 mb-1">貨位編號 *</label>
-          <input type="text" id="locCode" required placeholder="SR-1-6-1" class="w-full border border-slate-200 rounded-xl p-2.5 focus:outline-none focus:border-sky-500">
+          <label class="block font-bold text-slate-700 mb-1">貨架編號 *</label>
+          <input type="text" id="locCode" required placeholder="例如 貨架 1-11" class="w-full border border-slate-200 rounded-xl p-2.5 focus:outline-none focus:border-sky-500">
         </div>
         <div>
           <label class="block font-bold text-slate-700 mb-1">容量上限 (選填)</label>
@@ -763,35 +926,71 @@
     </div>
   </div>
 
-  <!-- MODAL 8: CSV Batch Import -->
+  <!-- MODAL 8: Smart Excel / CSV Batch Import Modal -->
   <div id="modal-import-csv" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-lg overflow-hidden">
-      <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-        <h3 class="font-bold text-slate-900 text-sm">批次匯入庫存資料</h3>
-        <button onclick="closeModal('modal-import-csv')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+    <div class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-2xl overflow-hidden">
+      <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-900 text-white">
+        <div class="flex items-center space-x-2">
+          <i class="fa-solid fa-paste text-emerald-400 text-base"></i>
+          <h3 class="font-bold text-white text-sm">Excel 極速複製貼上與批次匯入</h3>
+        </div>
+        <button onclick="closeModal('modal-import-csv')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
       </div>
-      <form onsubmit="handleCSVImport(event)" class="p-6 space-y-4 text-xs">
-        <div class="bg-sky-50 border border-sky-100 text-sky-800 rounded-xl p-3 flex items-start space-x-2 text-[11px]">
-          <i class="fa-solid fa-circle-info text-sky-500 mt-0.5"></i>
-          <div>
-            <p class="font-bold">格式說明 (CSV 欄位順序)：</p>
-            <p class="font-mono mt-0.5 text-[10px] text-sky-700">貨品編號, 貨品名稱, 貨位, 存量, 預警門檻, 單位</p>
+      <form onsubmit="handleCSVImport(event)" class="p-6 space-y-4 text-xs max-h-[85vh] overflow-y-auto">
+        <div class="bg-emerald-50 border border-emerald-200 text-emerald-950 rounded-xl p-3.5 flex items-start space-x-3">
+          <i class="fa-solid fa-lightbulb text-emerald-600 text-base mt-0.5 shrink-0"></i>
+          <div class="space-y-1">
+            <p class="font-extrabold text-xs">💡 超快捷入單說明（支援 Excel / Google Sheets 複製）：</p>
+            <p class="text-[11px] text-emerald-800">1. 在你的採購單 Excel 中選取表格格子（包含 <span class="font-bold">編號、名稱、數量、單位、貨位/備註</span>），直接按下 <kbd class="px-1.5 py-0.5 bg-white border border-emerald-300 rounded text-[10px]">Ctrl+C</kbd>。</p>
+            <p class="text-[11px] text-emerald-800">2. 直接貼在下方文字框中，點擊「即時剖析」，系統將自動拆解並預覽表格。</p>
           </div>
         </div>
-        <div>
-          <label class="block font-bold text-slate-700 mb-1">上傳 CSV 檔案</label>
-          <input type="file" id="csvFileInput" accept=".csv, .txt" onchange="parseCSVFile(event)" class="w-full text-xs text-slate-500 cursor-pointer">
-        </div>
+
         <div>
           <div class="flex items-center justify-between mb-1">
-            <label class="block font-bold text-slate-700">或貼上 CSV 文字</label>
-            <button type="button" onclick="downloadCSVTemplate()" class="text-[11px] text-sky-600 hover:underline">下載 CSV 範例檔</button>
+            <label class="block font-bold text-slate-800">貼上 Excel 複製內容 (或貼上 CSV)</label>
+            <button type="button" onclick="downloadCSVTemplate()" class="text-[11px] text-sky-600 hover:underline">下載範例檔</button>
           </div>
-          <textarea id="csvTextArea" rows="5" class="w-full font-mono text-slate-800 bg-slate-50 border border-slate-200 rounded-xl p-3 text-[11px] focus:outline-none"></textarea>
+          <textarea id="csvTextArea" rows="6" oninput="previewExcelImportTable()" placeholder="直接在此貼上從 Excel 複製的格子 (例如從珠海零件採購表複製)：&#10;N0811006	開關介字貼	4	張	新特勤車(AM9749)&#10;N0811007	水箱蓋鑰匙	3	條	新特勤車&#10;N0811008	檢修四角銀鑰匙	5	條	新特勤車" class="w-full font-mono text-slate-800 bg-slate-50 border border-slate-200 rounded-xl p-3 text-[11px] focus:bg-white focus:border-emerald-500 focus:outline-none transition"></textarea>
         </div>
-        <div class="pt-2 flex items-center justify-end space-x-2">
-          <button type="button" onclick="closeModal('modal-import-csv')" class="px-4 py-2 border border-slate-200 rounded-xl text-slate-600 font-semibold">取消</button>
-          <button type="submit" id="btnImportSubmit" class="px-4 py-2 bg-slate-900 text-white rounded-xl font-semibold hover:bg-slate-800">開始寫入數據庫</button>
+
+        <!-- Dynamic Live Preview Table -->
+        <div id="excelPreviewContainer" class="hidden space-y-2 border border-slate-200 rounded-xl p-3 bg-slate-50">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-slate-800">解析預覽 (<span id="excelParsedCount" class="text-emerald-600 font-extrabold">0</span> 筆)</span>
+            <span class="text-[10px] text-slate-400">已自動對應欄位</span>
+          </div>
+          <div class="max-h-40 overflow-y-auto rounded-lg border border-slate-200 bg-white">
+            <table class="w-full text-left text-[11px]">
+              <thead class="bg-slate-100 text-slate-600 font-bold border-b border-slate-200">
+                <tr>
+                  <th class="py-1.5 px-2">編號</th>
+                  <th class="py-1.5 px-2">名稱</th>
+                  <th class="py-1.5 px-2 text-right">數量</th>
+                  <th class="py-1.5 px-2">單位</th>
+                  <th class="py-1.5 px-2">貨位/備註</th>
+                </tr>
+              </thead>
+              <tbody id="excelPreviewBody" class="divide-y divide-slate-100"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+          <div>
+            <label class="cursor-pointer text-xs text-slate-500 hover:text-slate-800 flex items-center gap-1.5">
+              <i class="fa-solid fa-paperclip text-slate-400"></i>
+              <span>或選擇 .csv/.txt 檔案</span>
+              <input type="file" id="csvFileInput" accept=".csv, .txt" onchange="parseCSVFile(event)" class="hidden">
+            </label>
+          </div>
+          <div class="flex items-center space-x-2">
+            <button type="button" onclick="closeModal('modal-import-csv')" class="px-4 py-2 border border-slate-200 rounded-xl text-slate-600 font-semibold">取消</button>
+            <button type="submit" id="btnImportSubmit" class="px-5 py-2.5 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-500 shadow-md flex items-center gap-1.5">
+              <i class="fa-solid fa-cloud-arrow-up text-xs"></i>
+              <span>寫入系統資料庫</span>
+            </button>
+          </div>
         </div>
       </form>
     </div>
@@ -802,7 +1001,7 @@
     import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { getFirestore, doc, setDoc, addDoc, updateDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    /* Global UI State */
+    /* Global State & Setup */
     window.sidebarOpen = typeof window.sidebarOpen !== 'undefined' ? window.sidebarOpen : true;
 
     function toggleSidebar(forceState) {
@@ -847,7 +1046,7 @@
         'po-receiving': 'PO 採購預錄點收',
         movement: '入倉與調整',
         withdrawal: '提取流程',
-        location: '貨位互動式平面圖',
+        location: '三層鑽研式貨位地圖',
         labels: '標籤列印',
         reports: '報表數據分析'
       };
@@ -886,42 +1085,61 @@
 
     let currentUser = null;
 
-    /* Firestore References */
+    /* Firestore Collection References */
     const productsColRef = collection(db, 'artifacts', appId, 'public', 'data', 'products');
     const locationsColRef = collection(db, 'artifacts', appId, 'public', 'data', 'locations');
     const withdrawalsColRef = collection(db, 'artifacts', appId, 'public', 'data', 'withdrawals');
     const movementsColRef = collection(db, 'artifacts', appId, 'public', 'data', 'movements');
     const poOrdersColRef = collection(db, 'artifacts', appId, 'public', 'data', 'poOrders');
 
-    /* Default Data Store */
-    const defaultProducts = [
-      { id: '0314-001', name: 'Canter安全帶扣(鋼絲長扣)', location: '細倉1樓 / 3-3', stock: 5, min: 10, unit: '個', date: '28/8/2026' },
-      { id: '0314-002', name: '電池端子絕緣膠套(紅黑各200個)', location: '細倉1樓 / 5-2', stock: 400, min: 50, unit: '個', date: '28/8/2026' },
-      { id: '0314-006', name: '恒流200A繼電器', location: '細倉1樓 / 5-3', stock: 30, min: 10, unit: '個', date: '28/8/2026' },
-      { id: '0314-007', name: '保險座 · BX2017', location: '細倉1樓 / 5-3', stock: 1000, min: 100, unit: '個', date: '28/8/2026' },
-      { id: '0314-008', name: '帶固定腳繼電器底座 · HDJ054Y-6.3-21', location: '細倉1樓 / 5-3', stock: 1000, min: 100, unit: '個', date: '28/8/2026' },
-      { id: '0314-009', name: '250A分條排', location: '寫字樓', stock: 20, min: 5, unit: '個', date: '28/8/2026' },
-      { id: '0314-010', name: 'tactical bus 中門玻璃', location: '地下', stock: 1, min: 2, unit: '塊', date: '28/8/2026' },
-      { id: '0324-002', name: 'ECAS控制器(Canter)', location: '細倉1樓 / 3-3', stock: 7, min: 5, unit: '個', date: '28/8/2026' }
+    /* Generate 10 default racks for every single zone */
+    const zonesConfig = [
+      { name: '白棚', prefix: 'A-', count: 10, zoneKey: '白棚' },
+      { name: '細倉1樓', prefix: '1樓-', count: 10, zoneKey: '細倉1樓' },
+      { name: '細倉2樓', prefix: '2樓-', count: 10, zoneKey: '細倉2樓' },
+      { name: '綠棚A', prefix: 'GA-', count: 10, zoneKey: '綠棚A' },
+      { name: '綠棚B', prefix: 'GB-', count: 10, zoneKey: '綠棚B' },
+      { name: '綠棚C', prefix: 'GC-', count: 10, zoneKey: '綠棚C' },
+      { name: '工作棚', prefix: 'W-', count: 10, zoneKey: '工作棚' },
+      { name: '辦公室', prefix: 'OFF-', count: 10, zoneKey: '辦公室' },
+      { name: '大倉', prefix: 'D-', count: 10, zoneKey: '大倉' }
     ];
 
-    const defaultLocations = [
-      { name: '細倉1樓 / 3-3', code: 'SR-1-3-3', capacity: 1000 },
-      { name: '細倉1樓 / 5-2', code: 'SR-1-5-2', capacity: 500 },
-      { name: '細倉1樓 / 5-3', code: 'SR-1-5-3', capacity: 500 },
-      { name: '地下', code: 'G-01', capacity: 500 },
-      { name: '寫字樓', code: 'OFFICE', capacity: 200 }
+    const defaultLocations = [];
+    zonesConfig.forEach(z => {
+      for (let i = 1; i <= z.count; i++) {
+        const rackCode = `${z.prefix}${i < 10 ? '0' + i : i}`;
+        defaultLocations.push({
+          name: `${z.name} / 貨架 ${rackCode}`,
+          zone: z.zoneKey,
+          code: rackCode,
+          capacity: 500
+        });
+      }
+    });
+
+    /* Default Initial Datasets */
+    const defaultProducts = [
+      { id: '0314-001', name: 'Canter安全帶扣(鋼絲長扣)', location: '細倉1樓 / 貨架 1樓-01', stock: 5, min: 10, unit: '個', date: '28/8/2026' },
+      { id: '0314-002', name: '電池端子絕緣膠套(紅黑各200個)', location: '白棚 / 貨架 A-02', stock: 400, min: 50, unit: '個', date: '28/8/2026' },
+      { id: '0314-006', name: '恒流200A繼電器', location: '綠棚A / 貨架 GA-01', stock: 30, min: 10, unit: '個', date: '28/8/2026' },
+      { id: '0314-007', name: '保險座 · BX2017', location: '綠棚B / 貨架 GB-01', stock: 1000, min: 100, unit: '個', date: '28/8/2026' },
+      { id: '0314-008', name: '帶固定腳繼電器底座 · HDJ054Y-6.3-21', location: '綠棚C / 貨架 GC-01', stock: 1000, min: 100, unit: '個', date: '28/8/2026' },
+      { id: '0314-009', name: '250A分條排', location: '辦公室 / 貨架 OFF-01', stock: 20, min: 5, unit: '個', date: '28/8/2026' },
+      { id: '0314-010', name: 'tactical bus 中門玻璃', location: '大倉 / 貨架 D-01', stock: 1, min: 2, unit: '塊', date: '28/8/2026' },
+      { id: '0324-002', name: 'ECAS控制器(Canter)', location: '工作棚 / 貨架 W-01', stock: 7, min: 5, unit: '個', date: '28/8/2026' }
     ];
 
     const defaultPoOrders = [
       { 
         id: 'PO-2026-001', 
-        supplier: '日本東京零組件株式會社', 
+        supplier: '珠海零件採購2026.09.17', 
         status: 'pending', 
-        date: '18/9/2026',
+        date: '17/9/2026',
         items: [
-          { prodId: '0314-001', expectedQty: 20, receivedQty: 0 },
-          { prodId: '0324-002', expectedQty: 10, receivedQty: 0 }
+          { prodId: 'N0811006', expectedQty: 4, receivedQty: 0 },
+          { prodId: 'N0811007', expectedQty: 3, receivedQty: 0 },
+          { prodId: 'N0811008', expectedQty: 5, receivedQty: 0 }
         ]
       }
     ];
@@ -935,6 +1153,8 @@
       pageSize: 10,
       sortField: 'id',
       sortAsc: true,
+      selectedMapZone: '細倉',
+      selectedSubFloor: 'ALL',
       products: [...defaultProducts],
       locations: [...defaultLocations],
       withdrawals: [...defaultWithdrawals],
@@ -973,6 +1193,94 @@
       if (modal) modal.classList.add('hidden');
     }
     window.closeModal = closeModal;
+
+    /* Smart Excel Parsing Helper */
+    function parseExcelClipboardData(rawText) {
+      if (!rawText || !rawText.trim()) return [];
+      const lines = rawText.trim().split(/\r?\n/);
+      const items = [];
+
+      lines.forEach((line, index) => {
+        if (!line.trim()) return;
+        // Ignore header line if present
+        if (index === 0 && (line.includes('編號') || line.includes('品名') || line.includes('備註'))) return;
+
+        // Excel uses Tab (\t) for columns, fallback to comma if tab not found
+        const cols = line.includes('\t') ? line.split('\t') : line.split(',');
+        const cleanedCols = cols.map(c => c.trim().replace(/^"(.*)"$/, '$1'));
+
+        if (cleanedCols.length >= 2) {
+          const id = cleanedCols[0] || `SKU-${Date.now().toString().slice(-4)}`;
+          const name = cleanedCols[1] || '未命名零組件';
+          
+          // Find quantity column (extract trailing numbers if string like '4張')
+          let qty = 1;
+          let unit = '個';
+          let location = '細倉1樓 / 貨架 1樓-01';
+
+          if (cleanedCols[2]) {
+            const rawQtyStr = cleanedCols[2];
+            const numMatch = rawQtyStr.match(/\d+/);
+            if (numMatch) qty = parseInt(numMatch[0]);
+            
+            const unitMatch = rawQtyStr.replace(/\d+/g, '').trim();
+            if (unitMatch) unit = unitMatch;
+          }
+
+          if (cleanedCols[3] && !unit) {
+            unit = cleanedCols[3];
+          }
+
+          if (cleanedCols[4]) {
+            location = cleanedCols[4];
+          } else if (cleanedCols[3] && unit) {
+            location = cleanedCols[3];
+          }
+
+          items.push({
+            id: id.trim(),
+            name: name.trim(),
+            qty: qty,
+            unit: unit || '個',
+            location: location
+          });
+        }
+      });
+
+      return items;
+    }
+    window.parseExcelClipboardData = parseExcelClipboardData;
+
+    /* Live Preview for Excel Import Modal */
+    function previewExcelImportTable() {
+      const rawText = document.getElementById('csvTextArea')?.value || '';
+      const items = parseExcelClipboardData(rawText);
+      
+      const container = document.getElementById('excelPreviewContainer');
+      const tbody = document.getElementById('excelPreviewBody');
+      const countEl = document.getElementById('excelParsedCount');
+
+      if (!container || !tbody) return;
+
+      if (items.length === 0) {
+        container.classList.add('hidden');
+        return;
+      }
+
+      container.classList.remove('hidden');
+      if (countEl) countEl.textContent = items.length;
+
+      tbody.innerHTML = items.map(item => `
+        <tr class="hover:bg-slate-50">
+          <td class="py-1 px-2 font-mono font-bold text-slate-800">${item.id}</td>
+          <td class="py-1 px-2 font-medium text-slate-700">${item.name}</td>
+          <td class="py-1 px-2 text-right font-black text-emerald-700">${item.qty}</td>
+          <td class="py-1 px-2 text-slate-500">${item.unit}</td>
+          <td class="py-1 px-2 text-slate-500">${item.location}</td>
+        </tr>
+      `).join('');
+    }
+    window.previewExcelImportTable = previewExcelImportTable;
 
     function renderOverview() {
       const totalTypesEl = document.getElementById('stat-total-types');
@@ -1019,6 +1327,7 @@
           `).join('');
       }
     }
+    window.renderOverview = renderOverview;
 
     function renderInventoryTable() {
       const search = (document.getElementById('inventorySearch')?.value || '').toLowerCase().trim();
@@ -1101,10 +1410,10 @@
             <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold ${po.status === 'received' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}">${po.status === 'received' ? '已完成點收' : '等待到貨點收'}</span>
           </div>
 
-          <div class="space-y-1.5 text-xs text-slate-600">
+          <div class="space-y-1.5 text-xs text-slate-600 max-h-40 overflow-y-auto pr-1">
             ${po.items.map(i => {
               const prod = store.products.find(p => p.id === i.prodId);
-              return `<div class="flex justify-between"><span>${i.prodId} · ${prod ? prod.name : '貨品'}</span><span class="font-bold">預計: ${i.expectedQty} ${prod ? prod.unit : '個'}</span></div>`;
+              return `<div class="flex justify-between border-b border-slate-50 pb-1"><span>${i.prodId} · ${prod ? prod.name : (i.name || '零組件')}</span><span class="font-bold">預計: ${i.expectedQty} ${prod ? prod.unit : (i.unit || '個')}</span></div>`;
             }).join('')}
           </div>
 
@@ -1117,6 +1426,7 @@
         </div>
       `).join('');
     }
+    window.renderPoOrders = renderPoOrders;
 
     function initPoItemsForm() {
       const container = document.getElementById('poItemsContainer');
@@ -1125,7 +1435,7 @@
       addPoItemRow();
     }
 
-    function addPoItemRow() {
+    function addPoItemRow(initialCode = '', initialQty = 10) {
       const container = document.getElementById('poItemsContainer');
       if (!container) return;
       const rowId = 'poRow_' + Date.now() + Math.random().toString(36).substr(2, 4);
@@ -1134,14 +1444,50 @@
       row.className = 'flex items-center space-x-2';
       row.innerHTML = `
         <select class="po-prod-select flex-1 bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs">
-          ${store.products.map(p => `<option value="${p.id}">${p.id} - ${p.name}</option>`).join('')}
+          ${store.products.map(p => `<option value="${p.id}" ${p.id === initialCode ? 'selected' : ''}>${p.id} - ${p.name}</option>`).join('')}
+          ${!store.products.some(p => p.id === initialCode) && initialCode ? `<option value="${initialCode}" selected>${initialCode} (自訂新品)</option>` : ''}
         </select>
-        <input type="number" min="1" value="10" placeholder="預計數量" class="po-qty-input w-24 bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs">
+        <input type="number" min="1" value="${initialQty}" placeholder="預計數量" class="po-qty-input w-24 bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs">
         <button type="button" onclick="document.getElementById('${rowId}').remove()" class="text-rose-500 hover:text-rose-700 p-1"><i class="fa-solid fa-trash-can"></i></button>
       `;
       container.appendChild(row);
     }
     window.addPoItemRow = addPoItemRow;
+
+    function parsePoExcelPaste() {
+      const rawText = document.getElementById('poExcelPasteBox')?.value || '';
+      const items = parseExcelClipboardData(rawText);
+
+      if (items.length === 0) {
+        showToast("請在文字框內貼上有效的 Excel 複製格子資料", "error");
+        return;
+      }
+
+      const container = document.getElementById('poItemsContainer');
+      if (container) container.innerHTML = '';
+
+      items.forEach(item => {
+        // Automatically add missing SKU to products list if not exists
+        if (!store.products.some(p => p.id === item.id)) {
+          const newProd = {
+            id: item.id,
+            name: item.name,
+            location: item.location || '細倉1樓 / 貨架 1樓-01',
+            stock: 0,
+            min: 5,
+            unit: item.unit || '個',
+            date: new Date().toLocaleDateString('zh-TW')
+          };
+          store.products.push(newProd);
+          if (currentUser) setDoc(doc(productsColRef, item.id), newProd);
+        }
+        addPoItemRow(item.id, item.qty);
+      });
+
+      document.getElementById('poExcelPasteBox').value = '';
+      showToast(`已成功剖析並將 ${items.length} 筆 Excel 格子自動帶入 PO 採購單！`, "success");
+    }
+    window.parsePoExcelPaste = parsePoExcelPaste;
 
     async function handleSavePoOrder(e) {
       e.preventDefault();
@@ -1193,7 +1539,7 @@
         return `
           <div class="pt-2 first:pt-0 space-y-2">
             <div class="flex justify-between font-bold text-slate-800">
-              <span>${i.prodId} · ${prod ? prod.name : '貨品'}</span>
+              <span>${i.prodId} · ${prod ? prod.name : '零組件'}</span>
               <span>預計: ${i.expectedQty} ${prod ? prod.unit : '個'}</span>
             </div>
             <div class="grid grid-cols-2 gap-2">
@@ -1225,7 +1571,7 @@
 
         po.items.forEach((item, idx) => {
           const recQty = parseInt(document.getElementById(`receiveQty_${idx}`)?.value) || 0;
-          const locName = document.getElementById(`receiveLoc_${idx}`)?.value || '細倉1樓 / 3-3';
+          const locName = document.getElementById(`receiveLoc_${idx}`)?.value || '細倉1樓 / 貨架 1樓-01';
 
           const prod = store.products.find(p => p.id === item.prodId);
           if (prod) {
@@ -1260,6 +1606,7 @@
       if (nameSel) nameSel.innerHTML = `<option value="">請選擇貨品名稱...</option>` + store.products.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
       if (locSel) locSel.innerHTML = store.locations.map(l => `<option value="${l.name}">${l.name}</option>`).join('');
     }
+    window.populateMovementDropdowns = populateMovementDropdowns;
 
     function onMovementProductIdChange(val) {
       const nameSel = document.getElementById('movementProductName');
@@ -1347,6 +1694,7 @@
           </tr>
         `).join('');
     }
+    window.renderWithdrawals = renderWithdrawals;
 
     function initWithdrawalItemsForm() {
       const container = document.getElementById('withdrawalItemsContainer');
@@ -1403,9 +1751,9 @@
         closeModal('modal-create-withdrawal');
 
         if (currentUser) await addDoc(withdrawalsColRef, newDoc);
-        showToast("提取單建立成功！", 'success');
+        showToast(`提取單 [${newId}] 建立成功！`, 'success');
       } catch (err) {
-        showToast("建立失敗: " + err.message, 'error');
+        showToast("建立提取單失敗: " + err.message, "error");
       }
     }
     window.handleCreateWithdrawal = handleCreateWithdrawal;
@@ -1417,46 +1765,133 @@
       document.getElementById('viewWithApplicant').textContent = w.applicant;
       document.getElementById('viewWithPurpose').textContent = w.purpose;
 
-      const container = document.getElementById('viewWithItemsList');
-      container.innerHTML = (w.items || []).map(i => `
-        <div class="flex justify-between py-1 border-b border-slate-50 last:border-0">
-          <span class="font-medium text-slate-800">${i.prodId} · ${i.name}</span>
-          <span class="font-bold text-sky-600">${i.qty} 個</span>
-        </div>
-      `).join('');
-
+      const listContainer = document.getElementById('viewWithItemsList');
+      if (listContainer) {
+        listContainer.innerHTML = (w.items || []).length === 0 
+          ? '<p class="text-slate-400 text-xs py-2 text-center">無詳細品項資料</p>'
+          : (w.items || []).map(i => `
+            <div class="flex justify-between items-center py-1">
+              <span class="font-bold text-slate-800">${i.prodId} · ${i.name}</span>
+              <span class="font-black text-slate-900">${i.qty} 個</span>
+            </div>
+          `).join('');
+      }
       openModal('modal-view-withdrawal');
     }
     window.viewWithdrawalDetail = viewWithdrawalDetail;
 
-    function renderInteractiveMap() {
-      const selWarehouse = document.getElementById('mapWarehouseSelect')?.value || '細倉1樓';
-      document.getElementById('currentMapTitle').textContent = `${selWarehouse} 實景貨架分佈網格`;
+    /* LEVEL 1: Select Map Zone */
+    function selectMapZone(zoneName) {
+      store.selectedMapZone = zoneName;
+      store.selectedSubFloor = 'ALL';
+      renderInteractiveMap();
+    }
+    window.selectMapZone = selectMapZone;
 
-      const gridContainer = document.getElementById('interactiveMapGrid');
+    function filterSubFloor(floorVal) {
+      store.selectedSubFloor = floorVal;
+      renderInteractiveMap();
+    }
+    window.filterSubFloor = filterSubFloor;
+
+    /* LEVEL 1 & LEVEL 2 Rendering */
+    function renderInteractiveMap() {
+      const zones = ['白棚', '細倉', '綠棚A', '綠棚B', '綠棚C', '工作棚', '辦公室', '大倉'];
+      
+      zones.forEach(z => {
+        const zoneItems = store.products.filter(p => p.location && p.location.includes(z));
+        const hasLowStock = zoneItems.some(p => p.stock <= p.min);
+        const countEl = document.getElementById(`count-${z}`);
+        const dotEl = document.getElementById(`dot-${z}`);
+        const groupEl = document.getElementById(`zone-${z}`);
+
+        if (countEl) countEl.textContent = zoneItems.length;
+        if (dotEl) {
+          if (zoneItems.length === 0) dotEl.setAttribute('fill', '#cbd5e1');
+          else if (hasLowStock) dotEl.setAttribute('fill', '#f43f5e');
+          else dotEl.setAttribute('fill', '#0284c7');
+        }
+
+        if (groupEl) {
+          const isSelected = z === store.selectedMapZone;
+          groupEl.style.filter = isSelected ? 'drop-shadow(0 0 12px rgba(2, 132, 199, 0.8))' : 'none';
+        }
+      });
+
+      const activeZone = store.selectedMapZone || '細倉';
+      const titleEl = document.getElementById('selectedZoneTitle');
+      const sumEl = document.getElementById('selectedZoneSummary');
+      const subFloorBtnContainer = document.getElementById('subFloorFilterContainer');
+
+      // Toggle floor filter UI if "細倉" is active
+      if (activeZone === '細倉') {
+        if (subFloorBtnContainer) subFloorBtnContainer.classList.remove('hidden');
+        if (subFloorBtnContainer) subFloorBtnContainer.classList.add('flex');
+        
+        // Update button styles
+        ['ALL', '1樓', '2樓'].forEach(f => {
+          const btn = document.getElementById(f === 'ALL' ? 'btnFloorAll' : f === '1樓' ? 'btnFloor1F' : 'btnFloor2F');
+          if (btn) {
+            if (store.selectedSubFloor === f) {
+              btn.className = "px-3 py-1 rounded-lg text-xs font-bold bg-white text-slate-900 shadow-sm";
+            } else {
+              btn.className = "px-3 py-1 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900";
+            }
+          }
+        });
+      } else {
+        if (subFloorBtnContainer) subFloorBtnContainer.classList.add('hidden');
+        if (subFloorBtnContainer) subFloorBtnContainer.classList.remove('flex');
+      }
+
+      // Filter shelves matching selected zone and floor
+      let zoneShelves = store.locations.filter(l => (l.zone && l.zone.includes(activeZone)) || (l.name && l.name.includes(activeZone)));
+
+      if (activeZone === '細倉' && store.selectedSubFloor !== 'ALL') {
+        zoneShelves = zoneShelves.filter(l => l.name && l.name.includes(store.selectedSubFloor));
+      }
+
+      if (titleEl) titleEl.textContent = `【第二層】分區貨架網格：${activeZone}${activeZone === '細倉' && store.selectedSubFloor !== 'ALL' ? ' (' + store.selectedSubFloor + ')' : ''}`;
+      if (sumEl) sumEl.textContent = `此分區共提供 ${zoneShelves.length} 個標註貨架（點擊卡片調出第三層實存物品彈窗）`;
+
+      const gridContainer = document.getElementById('interactiveShelfGrid');
       if (!gridContainer) return;
 
-      const racks = [
-        { code: '3-1', name: '貨架 3-1' }, { code: '3-2', name: '貨架 3-2' }, { code: '3-3', name: '貨架 3-3' },
-        { code: '5-1', name: '貨架 5-1' }, { code: '5-2', name: '貨架 5-2' }, { code: '5-3', name: '貨架 5-3' },
-        { code: 'G-01', name: '地面特大貨架' }, { code: 'OFFICE', name: '寫字樓儲物櫃' }
-      ];
+      if (zoneShelves.length === 0) {
+        gridContainer.innerHTML = `<div class="col-span-full py-10 text-center text-slate-400 bg-slate-50 rounded-2xl border border-dashed border-slate-200">此區域「${activeZone}」尚未新增特定貨架卡片，你可以點擊右上方「新增貨架位」建立！</div>`;
+        return;
+      }
 
-      gridContainer.innerHTML = racks.map(r => {
-        const fullLocName = `${selWarehouse} / ${r.code}`;
-        const items = store.products.filter(p => p.location && (p.location.includes(r.code) || p.location === selWarehouse));
-        const totalItemsQty = items.reduce((a, b) => a + (b.stock || 0), 0);
-        const isOccupied = items.length > 0;
+      // Render LEVEL 2 Shelf Cards Grid
+      gridContainer.innerHTML = zoneShelves.map(shelf => {
+        const shelfItems = store.products.filter(p => p.location && p.location.includes(shelf.name));
+        const hasLowStock = shelfItems.some(p => p.stock <= p.min);
 
         return `
-          <div onclick="openShelfDetailsModal('${fullLocName}', '${r.code}')" class="rack-grid-item p-4 rounded-2xl border ${isOccupied ? 'border-sky-200 bg-sky-50/50 hover:bg-sky-50' : 'border-slate-200 bg-slate-50 hover:bg-slate-100'} cursor-pointer flex flex-col justify-between space-y-3 shadow-sm">
-            <div class="flex items-center justify-between">
-              <span class="font-mono font-black text-slate-800 text-xs">${r.code}</span>
-              <span class="w-2.5 h-2.5 rounded-full ${isOccupied ? 'bg-sky-500' : 'bg-slate-300'}"></span>
+          <div onclick="openShelfDetailsModal('${shelf.name}', '${shelf.code}')" class="bg-white p-5 rounded-2xl border ${hasLowStock ? 'border-rose-300 bg-rose-50/20' : 'border-slate-200'} shadow-sm cursor-pointer rack-card-hover space-y-3">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
+              <div class="flex items-center space-x-2">
+                <i class="fa-solid fa-cubes-stacked ${hasLowStock ? 'text-rose-500' : 'text-sky-600'} text-base"></i>
+                <span class="font-extrabold text-slate-900 text-sm">${shelf.name}</span>
+              </div>
+              ${hasLowStock 
+                ? '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-700">含低存量</span>' 
+                : '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-700">狀態正常</span>'}
             </div>
-            <div>
-              <p class="font-bold text-slate-900 text-xs">${r.name}</p>
-              <p class="text-[10px] text-slate-400 mt-0.5">${items.length} 種貨品共 ${totalItemsQty} 個</p>
+
+            <div class="flex justify-between items-center text-xs">
+              <span class="text-slate-500">存放貨品種類:</span>
+              <span class="font-black text-slate-900 text-sm">${shelfItems.length} 種</span>
+            </div>
+
+            <div class="flex justify-between items-center text-xs">
+              <span class="text-slate-500">貨品總件數:</span>
+              <span class="font-bold text-sky-700">${shelfItems.reduce((a,b)=>a+(b.stock||0),0)} 個</span>
+            </div>
+
+            <div class="pt-2 flex items-center justify-between text-[11px] text-sky-600 font-bold border-t border-slate-100">
+              <span>點擊查看物品詳情</span>
+              <i class="fa-solid fa-chevron-right text-[10px]"></i>
             </div>
           </div>
         `;
@@ -1464,19 +1899,31 @@
     }
     window.renderInteractiveMap = renderInteractiveMap;
 
+    /* LEVEL 3 Drawer Modal: Open Shelf Item Details */
     function openShelfDetailsModal(fullLocName, code) {
-      document.getElementById('shelfDetailTitle').textContent = `${fullLocName} 存放貨品清單`;
-      const items = store.products.filter(p => p.location && (p.location.includes(code) || p.location.includes(fullLocName)));
+      document.getElementById('shelfDetailTitle').textContent = `${fullLocName} 實存物品清單`;
+      
+      const items = store.products.filter(p => p.location && (p.location.includes(fullLocName) || p.location.includes(code)));
+      document.getElementById('shelfDetailCapacity').textContent = `貨架總存品項：${items.length} 種 (總計 ${items.reduce((a,b)=>a+(b.stock||0),0)} 個)`;
 
       const container = document.getElementById('shelfDetailItemsList');
-      container.innerHTML = items.length === 0 ? `<p class="text-xs text-slate-400 text-center py-4">此貨位目前空置，未存放貨品</p>` :
+      if (!container) return;
+
+      container.innerHTML = items.length === 0 ? `<div class="p-8 text-center text-slate-400 bg-white rounded-2xl border border-dashed border-slate-200">此貨架目前空置，未存放任何貨品。</div>` :
         items.map(p => `
-          <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-between">
+          <div class="p-4 bg-white rounded-xl border ${p.stock <= p.min ? 'border-rose-200 bg-rose-50/30' : 'border-slate-200'} flex items-center justify-between shadow-sm">
             <div>
-              <p class="font-bold text-slate-800 text-xs">${p.id} · ${p.name}</p>
-              <p class="text-[10px] text-slate-400">預警門檻 ${p.min}</p>
+              <div class="flex items-center space-x-2">
+                <span class="font-mono font-black text-slate-900 text-xs">${p.id}</span>
+                ${p.stock <= p.min ? '<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-rose-100 text-rose-600">低存量</span>' : ''}
+              </div>
+              <p class="font-bold text-slate-800 text-xs mt-0.5">${p.name}</p>
+              <p class="text-[10px] text-slate-400 mt-0.5">預警門檻: ${p.min} ${p.unit} | 更新: ${p.date}</p>
             </div>
-            <span class="font-black text-sm text-slate-900">${p.stock} ${p.unit}</span>
+            <div class="text-right">
+              <span class="font-black text-slate-900 text-base">${p.stock}</span>
+              <span class="text-[10px] text-slate-400 block">${p.unit || '個'}</span>
+            </div>
           </div>
         `).join('');
 
@@ -1491,6 +1938,7 @@
         generateBarcodePreview();
       }
     }
+    window.populateLabelSelect = populateLabelSelect;
 
     function generateBarcodePreview() {
       const pId = document.getElementById('labelSelectProduct')?.value;
@@ -1500,7 +1948,6 @@
       document.getElementById('barcodeCode').textContent = prod.id;
       document.getElementById('barcodeName').textContent = prod.name;
 
-      // Draw SVG Barcode
       try {
         JsBarcode("#barcodeSvg", prod.id, {
           format: "CODE128",
@@ -1510,7 +1957,6 @@
         });
       } catch (e) {}
 
-      // Draw QR Code
       const qrContainer = document.getElementById('qrcodeCanvas');
       if (qrContainer) {
         qrContainer.innerHTML = '';
@@ -1529,28 +1975,28 @@
       document.getElementById('reportTotalMovements').textContent = store.movements.length;
       document.getElementById('reportCompletedWithdrawals').textContent = store.withdrawals.length;
 
-      // Render Donut Chart
       const ctx1 = document.getElementById('chartWarehouseShare')?.getContext('2d');
       if (ctx1) {
         if (chart1) chart1.destroy();
         chart1 = new Chart(ctx1, {
           type: 'doughnut',
           data: {
-            labels: ['細倉1樓', '地下', '寫字樓'],
+            labels: ['白棚', '細倉1樓', '細倉2樓', '綠棚', '大倉'],
             datasets: [{
               data: [
+                store.products.filter(p => (p.location || '').includes('白棚')).length,
                 store.products.filter(p => (p.location || '').includes('細倉1樓')).length,
-                store.products.filter(p => (p.location || '').includes('地下')).length,
-                store.products.filter(p => (p.location || '').includes('寫字樓')).length
+                store.products.filter(p => (p.location || '').includes('細倉2樓')).length,
+                store.products.filter(p => (p.location || '').includes('綠棚')).length,
+                store.products.filter(p => (p.location || '').includes('大倉')).length
               ],
-              backgroundColor: ['#0284c7', '#6366f1', '#f59e0b']
+              backgroundColor: ['#0284c7', '#6366f1', '#a855f7', '#10b981', '#f59e0b']
             }]
           },
           options: { responsive: true, maintainAspectRatio: false }
         });
       }
 
-      // Render Bar Chart
       const ctx2 = document.getElementById('chartTopItems')?.getContext('2d');
       if (ctx2) {
         if (chart2) chart2.destroy();
@@ -1568,13 +2014,14 @@
         });
       }
     }
+    window.renderReports = renderReports;
 
-    /* Additional Handlers */
     function populateProdLocationSelect() {
       const select = document.getElementById('prodLocationSelect');
       if (!select) return;
       select.innerHTML = `<option value="">-- 請選擇現有貨位 --</option>` + store.locations.map(l => `<option value="${l.name}">${l.name}</option>`).join('');
     }
+    window.populateProdLocationSelect = populateProdLocationSelect;
 
     function handleProdLocationSelectChange(val) {
       if (val) document.getElementById('prodLocation').value = val;
@@ -1625,16 +2072,18 @@
     async function handleAddLocation(e) {
       e.preventDefault();
       try {
-        const name = document.getElementById('locName').value;
+        const zone = document.getElementById('locZone').value;
         const code = document.getElementById('locCode').value;
         const cap = document.getElementById('locCapacity').value;
-        const newLoc = { name, code, capacity: cap ? parseInt(cap) : null };
+        const fullName = `${zone} / ${code}`;
+
+        const newLoc = { name: fullName, zone, code, capacity: cap ? parseInt(cap) : null };
 
         store.locations.push(newLoc);
         renderInteractiveMap();
         closeModal('modal-add-location');
         if (currentUser) await addDoc(locationsColRef, newLoc);
-        showToast(`貨位 [${name}] 新增成功！`, 'success');
+        showToast(`貨架 [${fullName}] 新增成功！`, 'success');
       } catch (err) {
         showToast("新增失敗: " + err.message, "error");
       }
@@ -1654,11 +2103,11 @@
     window.exportToCSV = exportToCSV;
 
     function downloadCSVTemplate() {
-      const sample = "貨品編號,貨品名稱,貨位,存量,預警門檻,單位\n0314-015,Canter繼電器,細倉1樓 / 3-3,50,10,個";
-      const blob = new Blob(["\ufeff" + sample], { type: 'text/csv;charset=utf-8;' });
+      const sample = "貨品編號\t貨品名稱\t數量\t單位\t貨位或備註\nN0811006\t開關介字貼\t4\t張\t雙門特勤車(AM9749)\nN0811007\t水箱蓋鑰匙\t3\t條\t新特勤車";
+      const blob = new Blob(["\ufeff" + sample], { type: 'text/plain;charset=utf-8;' });
       const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
-      link.download = "inventory_template.csv";
+      link.download = "excel_copy_template.txt";
       link.click();
     }
     window.downloadCSVTemplate = downloadCSVTemplate;
@@ -1667,7 +2116,10 @@
       const file = e.target.files[0];
       if (!file) return;
       const reader = new FileReader();
-      reader.onload = (evt) => { document.getElementById('csvTextArea').value = evt.target.result; };
+      reader.onload = (evt) => { 
+        document.getElementById('csvTextArea').value = evt.target.result;
+        previewExcelImportTable();
+      };
       reader.readAsText(file);
     }
     window.parseCSVFile = parseCSVFile;
@@ -1675,29 +2127,49 @@
     async function handleCSVImport(e) {
       e.preventDefault();
       const rawText = document.getElementById('csvTextArea').value.trim();
-      if (!rawText) return showToast("請提供 CSV 內容", "error");
+      const parsedItems = parseExcelClipboardData(rawText);
 
-      const lines = rawText.split(/\r?\n/);
+      if (parsedItems.length === 0) return showToast("請複製貼上有效的 Excel 資料！", "error");
+
       let count = 0;
-      for (let i = 0; i < lines.length; i++) {
-        if (i === 0 && lines[i].includes("貨品編號")) continue;
-        const cols = lines[i].split(',').map(c => c.trim().replace(/^"(.*)"$/, '$1'));
-        if (cols.length >= 2) {
-          const [id, name, location = '細倉1樓', stockStr = '0', minStr = '5', unit = '個'] = cols;
-          const productData = { id, name, location, stock: parseInt(stockStr) || 0, min: parseInt(minStr) || 5, unit, date: new Date().toLocaleDateString('zh-TW') };
-          const idx = store.products.findIndex(p => p.id === id);
-          if (idx >= 0) store.products[idx] = productData;
-          else store.products.push(productData);
-          if (currentUser) setDoc(doc(productsColRef, id), productData);
-          count++;
-        }
-      }
+      parsedItems.forEach(item => {
+        const productData = { 
+          id: item.id, 
+          name: item.name, 
+          location: item.location || '細倉1樓 / 貨架 1樓-01', 
+          stock: item.qty || 0, 
+          min: 5, 
+          unit: item.unit || '個', 
+          date: new Date().toLocaleDateString('zh-TW') 
+        };
+
+        const idx = store.products.findIndex(p => p.id === item.id);
+        if (idx >= 0) store.products[idx] = productData;
+        else store.products.push(productData);
+
+        if (currentUser) setDoc(doc(productsColRef, item.id), productData);
+        count++;
+      });
+
       closeModal('modal-import-csv');
+      document.getElementById('csvTextArea').value = '';
+      document.getElementById('excelPreviewContainer').classList.add('hidden');
       renderOverview();
       renderInventoryTable();
-      showToast(`成功匯入 ${count} 筆數據！`, "success");
+      showToast(`一鍵成功剖析並寫入 ${count} 筆 Excel 零組件資料！`, "success");
     }
     window.handleCSVImport = handleCSVImport;
+
+    function handleGlobalSearch(val) {
+      if (!val || !val.trim()) return;
+      switchTab('inventory');
+      const searchEl = document.getElementById('inventorySearch');
+      if (searchEl) {
+        searchEl.value = val.trim();
+        renderInventoryTable();
+      }
+    }
+    window.handleGlobalSearch = handleGlobalSearch;
 
     async function initAuth() {
       try {
@@ -1714,11 +2186,14 @@
     onAuthStateChanged(auth, (user) => {
       if (user) {
         currentUser = user;
+        const statusEl = document.getElementById('cloudStatusText');
+        if (statusEl) statusEl.textContent = `雲端連線成功 (${user.uid.slice(0, 5)})`;
         onSnapshot(productsColRef, (snap) => {
           if (!snap.empty) {
             store.products = snap.docs.map(doc => ({ ...doc.data(), id: doc.id }));
             renderOverview();
             renderInventoryTable();
+            renderInteractiveMap();
           }
         });
       }
