@@ -1803,16 +1803,20 @@
         const { type, id } = pendingDeleteTarget;
 
         if (type === 'po') {
+          const target = store.poOrders.find(p => p.id === id);
+          const docKey = target?.docId || id;
           store.poOrders = store.poOrders.filter(p => p.id !== id);
           renderPoOrders();
-          if (currentUser) await deleteDoc(doc(poOrdersColRef, id));
+          if (currentUser) await deleteDoc(doc(poOrdersColRef, docKey));
           showToast(`已成功刪除 PO 採購單 [${id}]`, 'success');
         } else if (type === 'withdrawal') {
+          const target = store.withdrawals.find(w => w.id === id);
+          const docKey = target?.docId || id;
           store.withdrawals = store.withdrawals.filter(w => w.id !== id);
           renderWithdrawals();
           renderOverview();
           renderReports();
-          if (currentUser) await deleteDoc(doc(withdrawalsColRef, id));
+          if (currentUser) await deleteDoc(doc(withdrawalsColRef, docKey));
           showToast(`已成功刪除提取單 [${id}]`, 'success');
         }
 
@@ -2418,7 +2422,10 @@
         if (statusEl) statusEl.textContent = `雲端連線成功 (${user.uid.slice(0, 5)})`;
         onSnapshot(productsColRef, (snap) => {
           if (!snap.empty) {
-            store.products = snap.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+            store.products = snap.docs.map(doc => {
+              const d = doc.data();
+              return { ...d, id: d.id || doc.id, docId: doc.id };
+            });
             renderOverview();
             renderInventoryTable();
             renderInteractiveMap();
@@ -2426,13 +2433,19 @@
         });
         onSnapshot(poOrdersColRef, (snap) => {
           if (!snap.empty) {
-            store.poOrders = snap.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+            store.poOrders = snap.docs.map(doc => {
+              const d = doc.data();
+              return { ...d, id: d.id || doc.id, docId: doc.id };
+            });
             renderPoOrders();
           }
         });
         onSnapshot(withdrawalsColRef, (snap) => {
           if (!snap.empty) {
-            store.withdrawals = snap.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+            store.withdrawals = snap.docs.map(doc => {
+              const d = doc.data();
+              return { ...d, id: d.id || doc.id, docId: doc.id };
+            });
             renderWithdrawals();
             renderOverview();
           }
