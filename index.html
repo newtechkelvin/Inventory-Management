@@ -1112,36 +1112,6 @@
       }
     });
 
-    /* Default Initial Datasets */
-    const defaultProducts = [
-      { id: '0314-001', name: 'Canter安全帶扣(鋼絲長扣)', location: '細倉1樓 / 貨架 1樓-01', stock: 5, min: 10, unit: '個', date: '28/8/2026' },
-      { id: '0314-002', name: '電池端子絕緣膠套(紅黑各200個)', location: '白棚 / 貨架 A-02', stock: 400, min: 50, unit: '個', date: '28/8/2026' },
-      { id: '0314-006', name: '恒流200A繼電器', location: '綠棚A / 貨架 GA-01', stock: 30, min: 10, unit: '個', date: '28/8/2026' },
-      { id: '0314-007', name: '保險座 · BX2017', location: '綠棚B / 貨架 GB-01', stock: 1000, min: 100, unit: '個', date: '28/8/2026' },
-      { id: '0314-008', name: '帶固定腳繼電器底座 · HDJ054Y-6.3-21', location: '綠棚C / 貨架 GC-01', stock: 1000, min: 100, unit: '個', date: '28/8/2026' },
-      { id: '0314-009', name: '250A分條排', location: '辦公室 / 貨架 OFF-01', stock: 20, min: 5, unit: '個', date: '28/8/2026' },
-      { id: '0314-010', name: 'tactical bus 中門玻璃', location: '大倉 / 貨架 D-01', stock: 1, min: 2, unit: '塊', date: '28/8/2026' },
-      { id: '0324-002', name: 'ECAS控制器(Canter)', location: '工作棚 / 貨架 W-01', stock: 7, min: 5, unit: '個', date: '28/8/2026' }
-    ];
-
-    const defaultPoOrders = [
-      { 
-        id: 'PO-2026-001', 
-        supplier: '珠海零件採購2026.09.17', 
-        status: 'pending', 
-        date: '17/9/2026',
-        items: [
-          { prodId: 'N0811006', expectedQty: 4, receivedQty: 0 },
-          { prodId: 'N0811007', expectedQty: 3, receivedQty: 0 },
-          { prodId: 'N0811008', expectedQty: 5, receivedQty: 0 }
-        ]
-      }
-    ];
-
-    const defaultWithdrawals = [
-      { id: 'WO-20260909-060', applicant: '德哥', purpose: '維修 Canter ZU8831', status: 'completed', date: '9/9/2026', items: [{ prodId: '0314-001', name: 'Canter安全帶扣', qty: 2 }] }
-    ];
-
     const store = {
       currentPage: 1,
       pageSize: 10,
