@@ -1939,14 +1939,14 @@
         zoneShelves = zoneShelves.filter(l => l.name && l.name.includes(store.selectedSubFloor));
       }
 
-      if (titleEl) titleEl.textContent = `【第二層】分區貨架網格：${activeZone}${activeZone === '細倉' && store.selectedSubFloor !== 'ALL' ? ' (' + store.selectedSubFloor + ')' : ''}`;
-      if (sumEl) sumEl.textContent = `此分區共提供 ${zoneShelves.length} 個標註貨架（點擊卡片調出第三層實存物品彈窗）`;
+      if (titleEl) titleEl.textContent = `各存倉點貨架資料：${activeZone}${activeZone === '細倉' && store.selectedSubFloor !== 'ALL' ? ' (' + store.selectedSubFloor + ')' : ''}`;
+      if (sumEl) sumEl.textContent = `此分區共提供 ${zoneShelves.length} 個標註貨架（點擊查看實存物品彈窗）`;
 
       const gridContainer = document.getElementById('interactiveShelfGrid');
       if (!gridContainer) return;
 
       if (zoneShelves.length === 0) {
-        gridContainer.innerHTML = `<div class="col-span-full py-10 text-center text-slate-400 bg-slate-50 rounded-2xl border border-dashed border-slate-200">此區域「${activeZone}」尚未新增特定貨架卡片，你可以點擊右上方「新增貨架位」建立！</div>`;
+        gridContainer.innerHTML = `<div class="col-span-full py-10 text-center text-slate-400 bg-slate-50 rounded-2xl border border-dashed border-slate-200">此區域「${activeZone}」尚未新增特定貨架資料，你可以點擊右上方「新增貨架位」建立！</div>`;
         return;
       }
 
