@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>新力機械-倉存管理系統</title>
+  <title>智倉 WAREHOUSE FLOW - 倉儲管理系統</title>
 
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -53,8 +53,8 @@
               <i class="fa-solid fa-boxes-stacked text-base"></i>
             </div>
             <div class="sidebar-text">
-              <h1 class="font-black text-slate-900 text-base leading-none tracking-tight">新力機械</h1>
-              <span class="text-[10px] font-bold tracking-widest text-slate-400 uppercase">倉存管理系統</span>
+              <h1 class="font-black text-slate-900 text-base leading-none tracking-tight">智倉 FLOW</h1>
+              <span class="text-[10px] font-bold tracking-widest text-slate-400 uppercase">Warehouse System</span>
             </div>
           </div>
           <button onclick="toggleSidebar()" class="text-slate-400 hover:text-slate-600 md:flex hidden p-1.5 rounded-lg hover:bg-slate-100 transition">
@@ -91,7 +91,7 @@
 
           <button id="nav-location" onclick="switchTab('location')" class="w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition group">
             <i class="fa-solid fa-map-location-dot text-sm shrink-0 w-5 text-center"></i>
-            <span class="sidebar-text truncate">倉庫及貨架位置</span>
+            <span class="sidebar-text truncate">貨位互動平面圖</span>
           </button>
 
           <button id="nav-labels" onclick="switchTab('labels')" class="w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition group">
@@ -130,7 +130,7 @@
           <!-- Global Quick Search -->
           <div class="relative hidden sm:block w-48 md:w-64">
             <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-            <input type="text" onkeyup="if(event.key==='Enter') handleGlobalSearch(this.value)" placeholder="快速搜尋..." class="w-full bg-slate-100 text-slate-800 text-xs pl-9 pr-3 py-2 rounded-xl border border-transparent focus:bg-white focus:border-sky-500 focus:outline-none transition">
+            <input type="text" onkeyup="if(event.key==='Enter') handleGlobalSearch(this.value)" placeholder="快速全局搜尋 (Enter)..." class="w-full bg-slate-100 text-slate-800 text-xs pl-9 pr-3 py-2 rounded-xl border border-transparent focus:bg-white focus:border-sky-500 focus:outline-none transition">
           </div>
 
           <!-- Quick Excel Smart Paste Button in Header -->
@@ -139,6 +139,10 @@
             <span class="hidden sm:inline">Excel 複製貼上</span>
           </button>
 
+          <!-- User Profile Icon -->
+          <div class="w-9 h-9 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold text-xs shadow-sm">
+            ADM
+          </div>
         </div>
       </header>
 
@@ -151,9 +155,10 @@
               <div class="space-y-2">
                 <div class="flex items-center space-x-2 text-sky-400 text-xs font-extrabold uppercase tracking-widest">
                   <i class="fa-solid fa-cubes"></i>
-                  <span>Inventory Management System</span>
+                  <span>INVENTORY OVERVIEW</span>
                 </div>
-                <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight">倉存管理系統</h1>
+                <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight">今日貨倉，一目了然</h1>
+                <p class="text-xs md:text-sm text-slate-300">即時掌握存量、貨位同待辦流程。即時連線正常。</p>
               </div>
 
               <div class="flex items-center gap-3">
@@ -251,7 +256,7 @@
             </div>
             <div class="flex items-center gap-2">
               <button onclick="openModal('modal-import-csv')" class="px-4 py-2 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 text-emerald-800 font-bold text-xs rounded-xl transition flex items-center gap-2 shadow-sm">
-                <i class="fa-solid fa-paste text-emerald-600"></i> <span>Excel 極速批次匯入</span>
+                <i class="fa-solid fa-paste text-emerald-600"></i> <span>Excel 極速貼上匯入</span>
               </button>
               <button onclick="exportToCSV()" class="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-xs rounded-xl transition flex items-center gap-2">
                 <i class="fa-solid fa-download"></i> <span>匯出 CSV</span>
@@ -433,7 +438,8 @@
         <div id="view-location" class="hidden space-y-6">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h2 class="text-2xl font-black text-slate-900">工場各存貨點地圖</h2>
+              <h2 class="text-2xl font-black text-slate-900">三層鑽研式 (3-Tier) 廠房貨架地圖</h2>
+              <p class="text-xs text-slate-500 mt-1">【第一層：點擊全區圖】➔【第二層：查看分區 10 個貨架圖陣】➔【第三層：點擊貨架彈出實存物品卡】</p>
             </div>
             <div class="flex items-center gap-2">
               <button onclick="openModal('modal-add-location')" class="px-4 py-2 bg-slate-900 text-white font-semibold text-xs rounded-xl transition shadow-md flex items-center gap-2">
@@ -447,7 +453,7 @@
             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
               <div class="flex items-center space-x-3">
                 <div class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></div>
-                <span class="font-black text-slate-800 text-sm">工場各存貨點位置 (Workshop Vector Floorplan)</span>
+                <span class="font-black text-slate-800 text-sm">【第一層】廠房全區官方 SVG 實景平面圖 (Workshop Vector Floorplan)</span>
               </div>
               <div class="flex items-center space-x-4 text-[11px] text-slate-500">
                 <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-sky-500"></span> 正常存量</span>
@@ -542,7 +548,7 @@
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
               <div class="flex items-center space-x-3">
                 <span class="w-3.5 h-3.5 rounded-full bg-sky-600"></span>
-                <h3 id="selectedZoneTitle" class="font-black text-slate-900 text-base">各存貨點貨架：細倉</h3>
+                <h3 id="selectedZoneTitle" class="font-black text-slate-900 text-base">【第二層】分區貨架網格：細倉</h3>
               </div>
               
               <!-- Sub-floor filter toggle for 細倉 -->
@@ -918,7 +924,7 @@
       <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-900 text-white">
         <div class="flex items-center space-x-2">
           <i class="fa-solid fa-paste text-emerald-400 text-base"></i>
-          <h3 class="font-bold text-white text-sm">Excel 極速批次匯入</h3>
+          <h3 class="font-bold text-white text-sm">Excel 極速複製貼上與批次匯入</h3>
         </div>
         <button onclick="closeModal('modal-import-csv')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
       </div>
@@ -1051,7 +1057,7 @@
         'po-receiving': 'PO 採購預錄點收',
         movement: '入倉與調整',
         withdrawal: '提取流程',
-        location: '倉庫及貨架位置',
+        location: '三層鑽研式貨位地圖',
         labels: '標籤列印',
         reports: '報表數據分析'
       };
@@ -1123,7 +1129,37 @@
       }
     });
 
-      const store = {
+    /* Default Initial Datasets matching clean rack codes */
+    const defaultProducts = [
+      { id: '0314-001', name: 'Canter安全帶扣(鋼絲長扣)', location: '細倉1樓 / 貨架 1-1', stock: 5, min: 10, unit: '個', date: '28/8/2026' },
+      { id: '0314-002', name: '電池端子絕緣膠套(紅黑各200個)', location: '白棚 / 貨架 A-2', stock: 400, min: 50, unit: '個', date: '28/8/2026' },
+      { id: '0314-006', name: '恒流200A繼電器', location: '綠棚A / 貨架 GA-1', stock: 30, min: 10, unit: '個', date: '28/8/2026' },
+      { id: '0314-007', name: '保險座 · BX2017', location: '綠棚B / 貨架 GB-1', stock: 1000, min: 100, unit: '個', date: '28/8/2026' },
+      { id: '0314-008', name: '帶固定腳繼電器底座 · HDJ054Y-6.3-21', location: '綠棚C / 貨架 GC-1', stock: 1000, min: 100, unit: '個', date: '28/8/2026' },
+      { id: '0314-009', name: '250A分條排', location: '辦公室 / 貨架 OFF-1', stock: 20, min: 5, unit: '個', date: '28/8/2026' },
+      { id: '0314-010', name: 'tactical bus 中門玻璃', location: '大倉 / 貨架 D-1', stock: 1, min: 2, unit: '塊', date: '28/8/2026' },
+      { id: '0324-002', name: 'ECAS控制器(Canter)', location: '工作棚 / 貨架 W-1', stock: 7, min: 5, unit: '個', date: '28/8/2026' }
+    ];
+
+    const defaultPoOrders = [
+      { 
+        id: 'PO-2026-001', 
+        supplier: '珠海零件採購2026.09.17', 
+        status: 'pending', 
+        date: '17/9/2026',
+        items: [
+          { prodId: 'N0811006', expectedQty: 4, receivedQty: 0 },
+          { prodId: 'N0811007', expectedQty: 3, receivedQty: 0 },
+          { prodId: 'N0811008', expectedQty: 5, receivedQty: 0 }
+        ]
+      }
+    ];
+
+    const defaultWithdrawals = [
+      { id: 'WO-20260909-060', applicant: '德哥', purpose: '維修 Canter ZU8831', status: 'completed', date: '9/9/2026', items: [{ prodId: '0314-001', name: 'Canter安全帶扣', qty: 2 }] }
+    ];
+
+    const store = {
       currentPage: 1,
       pageSize: 10,
       sortField: 'id',
@@ -1901,14 +1937,14 @@
         zoneShelves = zoneShelves.filter(l => l.name && l.name.includes(store.selectedSubFloor));
       }
 
-      if (titleEl) titleEl.textContent = `各存倉位置貨架：${activeZone}${activeZone === '細倉' && store.selectedSubFloor !== 'ALL' ? ' (' + store.selectedSubFloor + ')' : ''}`;
-      if (sumEl) sumEl.textContent = `此分區共提供 ${zoneShelves.length} 個標註貨架（點擊查看實存物品彈窗）`;
+      if (titleEl) titleEl.textContent = `【第二層】分區貨架網格：${activeZone}${activeZone === '細倉' && store.selectedSubFloor !== 'ALL' ? ' (' + store.selectedSubFloor + ')' : ''}`;
+      if (sumEl) sumEl.textContent = `此分區共提供 ${zoneShelves.length} 個標註貨架（點擊卡片調出第三層實存物品彈窗）`;
 
       const gridContainer = document.getElementById('interactiveShelfGrid');
       if (!gridContainer) return;
 
       if (zoneShelves.length === 0) {
-        gridContainer.innerHTML = `<div class="col-span-full py-10 text-center text-slate-400 bg-slate-50 rounded-2xl border border-dashed border-slate-200">此區域「${activeZone}」尚未新增特定貨架資料，你可以點擊右上方「新增貨架位」建立！</div>`;
+        gridContainer.innerHTML = `<div class="col-span-full py-10 text-center text-slate-400 bg-slate-50 rounded-2xl border border-dashed border-slate-200">此區域「${activeZone}」尚未新增特定貨架卡片，你可以點擊右上方「新增貨架位」建立！</div>`;
         return;
       }
 
@@ -2037,7 +2073,7 @@
       ctx.fillStyle = '#0284c7';
       ctx.font = 'bold 12px Inter, sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText('庫存標籤', canvas.width / 2, 45);
+      ctx.fillText('智倉 WAREHOUSE FLOW · 零件庫存標籤', canvas.width / 2, 45);
 
       ctx.fillStyle = '#0f172a';
       ctx.font = 'bold 28px monospace, sans-serif';
@@ -2139,7 +2175,7 @@
         </head>
         <body>
           <div class="label-box">
-            <div class="header-tag">庫存標籤</div>
+            <div class="header-tag">智倉 WAREHOUSE FLOW · 零件庫存標籤</div>
             <div class="code">${prod.id}</div>
             <div class="name">${prod.name}</div>
             <div class="flex-graphics">
