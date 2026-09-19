@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>新力機械倉存管理系統</title>
+  <title>新力機械-倉存管理系統</title>
 
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -130,14 +130,15 @@
           <!-- Global Quick Search -->
           <div class="relative hidden sm:block w-48 md:w-64">
             <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-            <input type="text" onkeyup="if(event.key==='Enter') handleGlobalSearch(this.value)" placeholder="快速全網搜尋..." class="w-full bg-slate-100 text-slate-800 text-xs pl-9 pr-3 py-2 rounded-xl border border-transparent focus:bg-white focus:border-sky-500 focus:outline-none transition">
+            <input type="text" onkeyup="if(event.key==='Enter') handleGlobalSearch(this.value)" placeholder="快速搜尋..." class="w-full bg-slate-100 text-slate-800 text-xs pl-9 pr-3 py-2 rounded-xl border border-transparent focus:bg-white focus:border-sky-500 focus:outline-none transition">
           </div>
 
           <!-- Quick Excel Smart Paste Button in Header -->
           <button onclick="openModal('modal-import-csv')" class="px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200/80 font-bold text-xs rounded-xl transition flex items-center gap-1.5 shadow-sm">
             <i class="fa-solid fa-file-excel text-emerald-600"></i>
-            <span class="hidden sm:inline">Excel 極速批次匯入</span>
+            <span class="hidden sm:inline">Excel 複製貼上</span>
           </button>
+
         </div>
       </header>
 
@@ -153,7 +154,7 @@
                   <span>Inventory Management System</span>
                 </div>
                 <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight">倉存管理系統</h1>
-                      </div>
+              </div>
 
               <div class="flex items-center gap-3">
                 <button onclick="switchTab('inventory')" class="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 backdrop-blur-md text-white font-semibold text-xs transition border border-white/10 flex items-center gap-2">
@@ -433,7 +434,7 @@
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h2 class="text-2xl font-black text-slate-900">工場各存貨點地圖</h2>
-                 </div>
+            </div>
             <div class="flex items-center gap-2">
               <button onclick="openModal('modal-add-location')" class="px-4 py-2 bg-slate-900 text-white font-semibold text-xs rounded-xl transition shadow-md flex items-center gap-2">
                 <i class="fa-solid fa-plus"></i> <span>新增貨架位</span>
@@ -455,30 +456,16 @@
               </div>
             </div>
 
-            <!-- SVG Vector Floorplan directly containing user's exact polygon & rect attributes -->
+            <!-- SVG Vector Floorplan -->
             <div class="relative w-full bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden p-3 sm:p-6 min-h-[380px] sm:min-h-[500px] flex items-center justify-center select-none shadow-inner">
               <svg id="_圖層_1" data-name="圖層 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 652.363 529.551" class="w-full h-auto max-h-[550px] drop-shadow-2xl">
                 <g id="_圖層_2" data-name="圖層 2">
-                  <!-- Outer Factory Boundary Line & Passage Guides -->
+                  <!-- Outer Factory Boundary Line -->
                   <g>
                     <polygon points="92.958 245.218 124.928 207.758 114.598 80.178 165.538 69.188 197.078 71.098 278.948 206.098 298.858 234.988 331.828 244.018 383.908 239.768 443.418 225.628 451.758 240.248 476.248 275.128 509.098 331.038 556.408 374.998 575.518 397.458 580.298 440.458 409.348 480.238 382.478 484.418 351.068 477.698 309.148 460.388 285.038 444.408 269.508 419.168 92.958 245.218" fill="#f8fafc" stroke="#334155" stroke-width="2"/>
-                    <g>
-                      <polyline points="94.388 246.628 92.958 245.218 94.258 243.698" fill="none" stroke="#64748b" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>
-                      <line x1="96.928" y1="240.568" x2="122.288" y2="210.838" fill="none" stroke="#64748b" stroke-dasharray="0 0 4.113 4.113" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>
-                      <polyline points="123.628 209.278 124.928 207.758 124.758 205.758" fill="none" stroke="#64748b" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>
-                      <line x1="124.438" y1="201.778" x2="114.918" y2="84.158" fill="none" stroke="#64748b" stroke-dasharray="0 0 4 4" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>
-                      <polyline points="114.758 82.168 114.598 80.178 116.548 79.748" fill="none" stroke="#64748b" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>
-                      <polyline points="120.648 78.868 165.538 69.188 192.988 70.848" fill="none" stroke="#64748b" stroke-dasharray="0 0 4.195 4.195" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>
-                      <polyline points="195.078 70.978 197.078 71.098 198.118 72.808" fill="none" stroke="#64748b" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>
-                      <polyline points="200.168 76.188 278.948 206.098 298.858 234.988 331.828 244.018 383.908 239.768 439.548 226.548" fill="none" stroke="#64748b" stroke-dasharray="0 0 3.96 3.96" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>
-                      <polyline points="441.468 226.088 443.418 225.628 444.408 227.368" fill="none" stroke="#64748b" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>
-                      <polyline points="446.368 230.808 451.758 240.248 476.248 275.128 509.098 331.038 556.408 374.998 575.518 397.458 579.858 436.498" fill="none" stroke="#64748b" stroke-dasharray="0 0 3.964 3.964" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>
-                      <polyline points="580.078 438.468 580.298 440.458 578.348 440.908" fill="none" stroke="#64748b" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>
-                      <polyline points="574.438 441.828 409.348 480.238 382.478 484.418 351.068 477.698 309.148 460.388 285.038 444.408 269.508 419.168 95.818 248.038" fill="none" stroke="#64748b" stroke-dasharray="0 0 4.018 4.018" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2"/>
-                    </g>
                   </g>
 
-                  <!-- Zone 1: 細倉 (Exact rect from vector with 1F/2F support) -->
+                  <!-- Zone 1: 細倉 -->
                   <g id="zone-細倉" onclick="selectMapZone('細倉')" class="zone-shape group">
                     <rect x="109.754" y="224.375" width="34.491" height="34.491" transform="translate(-137.351 173.591) rotate(-47.841)" fill="#ffffff" stroke="#0284c7" stroke-width="2.5"/>
                     <text x="127" y="244" text-anchor="middle" font-weight="900" font-size="11" fill="#0f172a">細倉</text>
@@ -486,7 +473,7 @@
                     <text id="count-細倉" x="140" y="227.5" text-anchor="middle" font-size="7" font-weight="800" fill="#ffffff">0</text>
                   </g>
 
-                  <!-- Zone 2: 白棚 (Exact rect from vector) -->
+                  <!-- Zone 2: 白棚 -->
                   <g id="zone-白棚" onclick="selectMapZone('白棚')" class="zone-shape group">
                     <rect x="180.789" y="118.913" width="55.081" height="69.841" transform="translate(-46.767 109.203) rotate(-26.519)" fill="#e2e8f0" stroke="#0284c7" stroke-width="2.5"/>
                     <text x="208" y="158" text-anchor="middle" font-weight="900" font-size="14" fill="#0f172a">白棚</text>
@@ -494,7 +481,7 @@
                     <text id="count-白棚" x="230" y="131" text-anchor="middle" font-size="8" font-weight="800" fill="#ffffff">0</text>
                   </g>
 
-                  <!-- Zone 3: 工作棚 (Exact rect from vector) -->
+                  <!-- Zone 3: 工作棚 -->
                   <g id="zone-工作棚" onclick="selectMapZone('工作棚')" class="zone-shape group">
                     <rect x="418.79" y="259.247" width="67.867" height="103.085" transform="translate(-96.298 299.653) rotate(-33.307)" fill="#e2e8f0" stroke="#f59e0b" stroke-width="2.5"/>
                     <text x="452" y="315" text-anchor="middle" font-weight="900" font-size="16" fill="#0f172a">工作棚</text>
@@ -502,7 +489,7 @@
                     <text id="count-工作棚" x="482" y="273" text-anchor="middle" font-size="8" font-weight="800" fill="#ffffff">0</text>
                   </g>
 
-                  <!-- Zone 4: 辦公室 (Exact rect from vector) -->
+                  <!-- Zone 4: 辦公室 -->
                   <g id="zone-辦公室" onclick="selectMapZone('辦公室')" class="zone-shape group">
                     <rect x="375.601" y="416.865" width="94.022" height="52.291" transform="translate(-86.201 102.469) rotate(-12.556)" fill="#ffffff" stroke="#6366f1" stroke-width="2.5"/>
                     <text x="422" y="447" text-anchor="middle" font-weight="900" font-size="13" fill="#0f172a">辦公室</text>
@@ -510,7 +497,7 @@
                     <text id="count-辦公室" x="462" y="427.5" text-anchor="middle" font-size="7" font-weight="800" fill="#ffffff">0</text>
                   </g>
 
-                  <!-- Zone 5: 綠棚A (Exact rect from vector) -->
+                  <!-- Zone 5: 綠棚A -->
                   <g id="zone-綠棚A" onclick="selectMapZone('綠棚A')" class="zone-shape group">
                     <rect x="149.336" y="258.099" width="40.021" height="50.441" transform="translate(-151.343 205.175) rotate(-45.438)" fill="#2e3940" stroke="#10b981" stroke-width="2.5"/>
                     <text x="169" y="286" text-anchor="middle" font-weight="900" font-size="11" fill="#ffffff">綠棚A</text>
@@ -518,7 +505,7 @@
                     <text id="count-綠棚A" x="188" y="267.5" text-anchor="middle" font-size="7" font-weight="800" fill="#ffffff">0</text>
                   </g>
 
-                  <!-- Zone 6: 綠棚B (Exact rect from vector) -->
+                  <!-- Zone 6: 綠棚B -->
                   <g id="zone-綠棚B" onclick="selectMapZone('綠棚B')" class="zone-shape group">
                     <rect x="185.495" y="295.56" width="40.021" height="46.741" transform="translate(-165.928 241.561) rotate(-45.438)" fill="#2e3940" stroke="#10b981" stroke-width="2.5"/>
                     <text x="205" y="322" text-anchor="middle" font-weight="900" font-size="11" fill="#ffffff">綠棚B</text>
@@ -526,7 +513,7 @@
                     <text id="count-綠棚B" x="223" y="303.5" text-anchor="middle" font-size="7" font-weight="800" fill="#ffffff">0</text>
                   </g>
 
-                  <!-- Zone 7: 綠棚C (Exact rect from vector) -->
+                  <!-- Zone 7: 綠棚C -->
                   <g id="zone-綠棚C" onclick="selectMapZone('綠棚C')" class="zone-shape group">
                     <rect x="217.578" y="335.437" width="29.841" height="35.491" transform="translate(-182.28 271.011) rotate(-45.438)" fill="#2e3940" stroke="#10b981" stroke-width="2.5"/>
                     <text x="232" y="355" text-anchor="middle" font-weight="900" font-size="10" fill="#ffffff">綠棚C</text>
@@ -534,7 +521,7 @@
                     <text id="count-綠棚C" x="247" y="340" text-anchor="middle" font-size="6" font-weight="800" fill="#ffffff">0</text>
                   </g>
 
-                  <!-- Zone 8: 大倉 (Exact polygon from vector) -->
+                  <!-- Zone 8: 大倉 -->
                   <g id="zone-大倉" onclick="selectMapZone('大倉')" class="zone-shape group">
                     <polygon points="569.108 409.038 565.388 392.538 547.778 396.478 550.918 413.088 477.498 429.448 483.468 456.248 575.238 435.808 569.108 409.038" fill="#ffffff" stroke="#0284c7" stroke-width="2.5"/>
                     <text x="526" y="432" text-anchor="middle" font-weight="900" font-size="13" fill="#0f172a">大倉</text>
@@ -542,7 +529,7 @@
                     <text id="count-大倉" x="560" y="412.5" text-anchor="middle" font-size="7" font-weight="800" fill="#ffffff">0</text>
                   </g>
 
-                  <!-- Red Entrance Gate Line (Exact rect from vector) -->
+                  <!-- Red Entrance Gate Line -->
                   <rect x="330.814" y="447.006" width="3.28" height="46.051" transform="translate(-226.122 609.49) rotate(-68.747)" fill="#e72637" stroke="#e72637" stroke-width="1"/>
                   <text x="350" y="482" text-anchor="middle" font-size="10" font-weight="900" fill="#ef4444">▲ 正門 (Gate)</text>
                 </g>
@@ -550,12 +537,12 @@
             </div>
           </div>
 
-          <!-- LEVEL 2: Zone Shelves Array Section (區域貨架配置陣列) -->
+          <!-- LEVEL 2: Zone Shelves Array Section -->
           <div class="bg-white p-5 rounded-2xl border border-slate-200/60 shadow-sm space-y-4">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
               <div class="flex items-center space-x-3">
                 <span class="w-3.5 h-3.5 rounded-full bg-sky-600"></span>
-                <h3 id="selectedZoneTitle" class="font-black text-slate-900 text-base">倉內各貨架概覽：細倉</h3>
+                <h3 id="selectedZoneTitle" class="font-black text-slate-900 text-base">各存貨點貨架：細倉</h3>
               </div>
               
               <!-- Sub-floor filter toggle for 細倉 -->
@@ -568,7 +555,7 @@
               <span id="selectedZoneSummary" class="text-xs font-semibold text-slate-500">點擊下方任意貨架卡片即可查看該貨架詳細物品</span>
             </div>
 
-            <!-- Shelf Cards Grid (點擊觸發第三層 Drawer) -->
+            <!-- Shelf Cards Grid -->
             <div id="interactiveShelfGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
           </div>
         </div>
@@ -576,8 +563,8 @@
         <!-- VIEW 7: LABELS PRINTING -->
         <div id="view-labels" class="hidden space-y-6">
           <div>
-            <h2 class="text-2xl font-black text-slate-900">標籤列印</h2>
-            <p class="text-xs text-slate-500 mt-1">選取貨品即時繪製生成真實向量 Barcode 條碼與 QR Code。</p>
+            <h2 class="text-2xl font-black text-slate-900">標籤列印與 PNG 圖檔匯出</h2>
+            <p class="text-xs text-slate-500 mt-1">選取貨品即時繪製生成真實向量 Barcode 條碼與 QR Code，可一鍵匯出高品質 PNG 圖片或進行列印。</p>
           </div>
 
           <div class="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm max-w-xl space-y-4">
@@ -603,10 +590,16 @@
               </div>
             </div>
 
-            <button onclick="showToast('條碼標籤已成功送至列印佇列！', 'success')" class="w-full bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs py-3 rounded-xl transition shadow-md flex items-center justify-center space-x-2">
-              <i class="fa-solid fa-print"></i>
-              <span>列印此標籤</span>
-            </button>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <button onclick="downloadLabelAsPNG()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs py-3 rounded-xl transition shadow-md flex items-center justify-center space-x-2">
+                <i class="fa-solid fa-file-image"></i>
+                <span>匯出 PNG 標籤圖檔</span>
+              </button>
+              <button onclick="printLabelDirectly()" class="w-full bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs py-3 rounded-xl transition shadow-md flex items-center justify-center space-x-2">
+                <i class="fa-solid fa-print"></i>
+                <span>開啟瀏覽器列印</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -725,7 +718,6 @@
           </div>
         </div>
 
-        <!-- Excel Smart Paste Quick Box inside PO Form -->
         <div class="bg-emerald-50/70 border border-emerald-200 p-3.5 rounded-2xl space-y-2">
           <div class="flex items-center justify-between">
             <div class="flex items-center space-x-2">
@@ -852,7 +844,7 @@
     </div>
   </div>
 
-  <!-- LEVEL 3 MODAL: Shelf Drawer / Item Details Modal (第三層：貨架實存物品彈窗) -->
+  <!-- LEVEL 3 MODAL: Shelf Drawer / Item Details Modal -->
   <div id="modal-shelf-details" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-200">
       <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
@@ -926,7 +918,7 @@
       <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-900 text-white">
         <div class="flex items-center space-x-2">
           <i class="fa-solid fa-paste text-emerald-400 text-base"></i>
-          <h3 class="font-bold text-white text-sm">Excel 極速複製貼上與批次匯入</h3>
+          <h3 class="font-bold text-white text-sm">Excel 極速批次匯入</h3>
         </div>
         <button onclick="closeModal('modal-import-csv')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
       </div>
@@ -990,10 +982,29 @@
     </div>
   </div>
 
+  <!-- MODAL 9: Delete Confirmation Modal -->
+  <div id="modal-delete-confirm" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-sm overflow-hidden">
+      <div class="p-6 text-center space-y-4">
+        <div class="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mx-auto text-xl">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+        <div>
+          <h3 class="font-extrabold text-slate-900 text-base" id="deleteConfirmTitle">確認刪除單據？</h3>
+          <p class="text-xs text-slate-500 mt-1" id="deleteConfirmSub">刪除後將無法恢復此紀錄，請確認是否繼續。</p>
+        </div>
+        <div class="pt-2 flex items-center justify-center space-x-2">
+          <button type="button" onclick="closeModal('modal-delete-confirm')" class="w-full py-2.5 border border-slate-200 rounded-xl text-slate-600 font-bold text-xs hover:bg-slate-50 transition">取消</button>
+          <button type="button" id="btnConfirmDeleteAction" onclick="executeDeleteAction()" class="w-full py-2.5 bg-rose-600 text-white rounded-xl font-bold text-xs hover:bg-rose-500 shadow-md transition">確認刪除</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, addDoc, updateDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
     /* Global State & Setup */
     window.sidebarOpen = typeof window.sidebarOpen !== 'undefined' ? window.sidebarOpen : true;
@@ -1040,7 +1051,7 @@
         'po-receiving': 'PO 採購預錄點收',
         movement: '入倉與調整',
         withdrawal: '提取流程',
-        location: '三層鑽研式貨位地圖',
+        location: '倉庫及貨架位置',
         labels: '標籤列印',
         reports: '報表數據分析'
       };
@@ -1086,11 +1097,11 @@
     const movementsColRef = collection(db, 'artifacts', appId, 'public', 'data', 'movements');
     const poOrdersColRef = collection(db, 'artifacts', appId, 'public', 'data', 'poOrders');
 
-    /* Generate 10 default racks for every single zone */
+    /* Generate default racks with standardized clean codes for every single zone */
     const zonesConfig = [
       { name: '白棚', prefix: 'A-', count: 10, zoneKey: '白棚' },
-      { name: '細倉1樓', prefix: '1樓-', count: 10, zoneKey: '細倉1樓' },
-      { name: '細倉2樓', prefix: '2樓-', count: 10, zoneKey: '細倉2樓' },
+      { name: '細倉1樓', prefix: '1-', count: 10, zoneKey: '細倉1樓' },
+      { name: '細倉2樓', prefix: '2-', count: 10, zoneKey: '細倉2樓' },
       { name: '綠棚A', prefix: 'GA-', count: 10, zoneKey: '綠棚A' },
       { name: '綠棚B', prefix: 'GB-', count: 10, zoneKey: '綠棚B' },
       { name: '綠棚C', prefix: 'GC-', count: 10, zoneKey: '綠棚C' },
@@ -1102,7 +1113,7 @@
     const defaultLocations = [];
     zonesConfig.forEach(z => {
       for (let i = 1; i <= z.count; i++) {
-        const rackCode = `${z.prefix}${i < 10 ? '0' + i : i}`;
+        const rackCode = `${z.prefix}${i}`;
         defaultLocations.push({
           name: `${z.name} / 貨架 ${rackCode}`,
           zone: z.zoneKey,
@@ -1112,7 +1123,7 @@
       }
     });
 
-    const store = {
+      const store = {
       currentPage: 1,
       pageSize: 10,
       sortField: 'id',
@@ -1125,6 +1136,8 @@
       poOrders: [...defaultPoOrders],
       movements: []
     };
+
+    let pendingDeleteTarget = null; // { type: 'po' | 'withdrawal', id: string }
 
     function showToast(message, type = 'info') {
       const container = document.getElementById('toastContainer');
@@ -1166,10 +1179,8 @@
 
       lines.forEach((line, index) => {
         if (!line.trim()) return;
-        // Ignore header line if present
         if (index === 0 && (line.includes('編號') || line.includes('品名') || line.includes('備註'))) return;
 
-        // Excel uses Tab (\t) for columns, fallback to comma if tab not found
         const cols = line.includes('\t') ? line.split('\t') : line.split(',');
         const cleanedCols = cols.map(c => c.trim().replace(/^"(.*)"$/, '$1'));
 
@@ -1177,10 +1188,9 @@
           const id = cleanedCols[0] || `SKU-${Date.now().toString().slice(-4)}`;
           const name = cleanedCols[1] || '未命名零組件';
           
-          // Find quantity column (extract trailing numbers if string like '4張')
           let qty = 1;
           let unit = '個';
-          let location = '細倉1樓 / 貨架 1樓-01';
+          let location = '細倉1樓 / 貨架 1-1';
 
           if (cleanedCols[2]) {
             const rawQtyStr = cleanedCols[2];
@@ -1215,7 +1225,6 @@
     }
     window.parseExcelClipboardData = parseExcelClipboardData;
 
-    /* Live Preview for Excel Import Modal */
     function previewExcelImportTable() {
       const rawText = document.getElementById('csvTextArea')?.value || '';
       const items = parseExcelClipboardData(rawText);
@@ -1371,7 +1380,12 @@
               <span class="font-mono font-black text-slate-900 text-sm">${po.id}</span>
               <p class="text-[11px] text-slate-400">${po.supplier}</p>
             </div>
-            <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold ${po.status === 'received' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}">${po.status === 'received' ? '已完成點收' : '等待到貨點收'}</span>
+            <div class="flex items-center space-x-2">
+              <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold ${po.status === 'received' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}">${po.status === 'received' ? '已完成點收' : '等待到貨點收'}</span>
+              <button onclick="confirmDeletePoOrder('${po.id}')" title="刪除採購單" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition">
+                <i class="fa-solid fa-trash-can text-xs"></i>
+              </button>
+            </div>
           </div>
 
           <div class="space-y-1.5 text-xs text-slate-600 max-h-40 overflow-y-auto pr-1">
@@ -1398,6 +1412,7 @@
       container.innerHTML = '';
       addPoItemRow();
     }
+    window.initPoItemsForm = initPoItemsForm;
 
     function addPoItemRow(initialCode = '', initialQty = 10) {
       const container = document.getElementById('poItemsContainer');
@@ -1431,12 +1446,11 @@
       if (container) container.innerHTML = '';
 
       items.forEach(item => {
-        // Automatically add missing SKU to products list if not exists
         if (!store.products.some(p => p.id === item.id)) {
           const newProd = {
             id: item.id,
             name: item.name,
-            location: item.location || '細倉1樓 / 貨架 1樓-01',
+            location: item.location || '細倉1樓 / 貨架 1-1',
             stock: 0,
             min: 5,
             unit: item.unit || '個',
@@ -1483,7 +1497,7 @@
         renderPoOrders();
         closeModal('modal-create-po');
 
-        if (currentUser) await addDoc(poOrdersColRef, newPo);
+        if (currentUser) await setDoc(doc(poOrdersColRef, newPo.id), newPo);
         showToast(`PO 採購預錄單 [${poNo}] 建立成功！`, 'success');
       } catch (err) {
         showToast("建立失敗: " + err.message, "error");
@@ -1535,7 +1549,7 @@
 
         po.items.forEach((item, idx) => {
           const recQty = parseInt(document.getElementById(`receiveQty_${idx}`)?.value) || 0;
-          const locName = document.getElementById(`receiveLoc_${idx}`)?.value || '細倉1樓 / 貨架 1樓-01';
+          const locName = document.getElementById(`receiveLoc_${idx}`)?.value || '細倉1樓 / 貨架 1-1';
 
           const prod = store.products.find(p => p.id === item.prodId);
           if (prod) {
@@ -1652,8 +1666,11 @@
             <td class="py-3 px-4 font-bold text-slate-700">${(w.items || []).length} 項品項</td>
             <td class="py-3 px-4"><span class="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">已完成</span></td>
             <td class="py-3 px-4 text-slate-400">${w.date}</td>
-            <td class="py-3 px-4 text-right">
+            <td class="py-3 px-4 text-right flex items-center justify-end space-x-1.5">
               <button onclick="viewWithdrawalDetail('${w.id}')" class="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition">檢視卡片</button>
+              <button onclick="confirmDeleteWithdrawal('${w.id}')" title="刪除提取單" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition">
+                <i class="fa-solid fa-trash-can text-xs"></i>
+              </button>
             </td>
           </tr>
         `).join('');
@@ -1666,6 +1683,7 @@
       container.innerHTML = '';
       addWithdrawalItemRow();
     }
+    window.initWithdrawalItemsForm = initWithdrawalItemsForm;
 
     function addWithdrawalItemRow() {
       const container = document.getElementById('withdrawalItemsContainer');
@@ -1714,13 +1732,61 @@
         renderOverview();
         closeModal('modal-create-withdrawal');
 
-        if (currentUser) await addDoc(withdrawalsColRef, newDoc);
+        if (currentUser) await setDoc(doc(withdrawalsColRef, newDoc.id), newDoc);
         showToast(`提取單 [${newId}] 建立成功！`, 'success');
       } catch (err) {
         showToast("建立提取單失敗: " + err.message, "error");
       }
     }
     window.handleCreateWithdrawal = handleCreateWithdrawal;
+
+    function confirmDeletePoOrder(poId) {
+      pendingDeleteTarget = { type: 'po', id: poId };
+      const titleEl = document.getElementById('deleteConfirmTitle');
+      const subEl = document.getElementById('deleteConfirmSub');
+      if (titleEl) titleEl.textContent = `確認刪除 PO 採購單？`;
+      if (subEl) subEl.textContent = `將刪除採購單 [${poId}]，此操作無法復原。`;
+      openModal('modal-delete-confirm');
+    }
+    window.confirmDeletePoOrder = confirmDeletePoOrder;
+
+    function confirmDeleteWithdrawal(withDocId) {
+      pendingDeleteTarget = { type: 'withdrawal', id: withDocId };
+      const titleEl = document.getElementById('deleteConfirmTitle');
+      const subEl = document.getElementById('deleteConfirmSub');
+      if (titleEl) titleEl.textContent = `確認刪除提取單？`;
+      if (subEl) subEl.textContent = `將刪除提取單據 [${withDocId}]，此操作無法復原。`;
+      openModal('modal-delete-confirm');
+    }
+    window.confirmDeleteWithdrawal = confirmDeleteWithdrawal;
+
+    async function executeDeleteAction() {
+      if (!pendingDeleteTarget) return;
+
+      try {
+        const { type, id } = pendingDeleteTarget;
+
+        if (type === 'po') {
+          store.poOrders = store.poOrders.filter(p => p.id !== id);
+          renderPoOrders();
+          if (currentUser) await deleteDoc(doc(poOrdersColRef, id));
+          showToast(`已成功刪除 PO 採購單 [${id}]`, 'success');
+        } else if (type === 'withdrawal') {
+          store.withdrawals = store.withdrawals.filter(w => w.id !== id);
+          renderWithdrawals();
+          renderOverview();
+          renderReports();
+          if (currentUser) await deleteDoc(doc(withdrawalsColRef, id));
+          showToast(`已成功刪除提取單 [${id}]`, 'success');
+        }
+
+        pendingDeleteTarget = null;
+        closeModal('modal-delete-confirm');
+      } catch (err) {
+        showToast("刪除失敗: " + err.message, "error");
+      }
+    }
+    window.executeDeleteAction = executeDeleteAction;
 
     function viewWithdrawalDetail(id) {
       const w = store.withdrawals.find(item => item.id === id);
@@ -1744,7 +1810,6 @@
     }
     window.viewWithdrawalDetail = viewWithdrawalDetail;
 
-    /* LEVEL 1: Select Map Zone */
     function selectMapZone(zoneName) {
       store.selectedMapZone = zoneName;
       store.selectedSubFloor = 'ALL';
@@ -1758,37 +1823,44 @@
     }
     window.filterSubFloor = filterSubFloor;
 
-    /* LEVEL 1 & LEVEL 2 Rendering */
+    function isLocationMatch(prodLocation, shelfName, shelfCode) {
+      if (!prodLocation) return false;
+      const normLoc = prodLocation.toLowerCase().trim();
+      const normName = shelfName ? shelfName.toLowerCase().trim() : '';
+      const normCode = shelfCode ? shelfCode.toLowerCase().trim() : '';
+
+      if (normName && normLoc.includes(normName)) return true;
+      if (normCode && normLoc.includes(normCode)) return true;
+
+      const cleanLoc = normLoc.replace(/貨架\s*/g, '').replace(/\s+/g, '');
+      const cleanCode = normCode.replace(/貨架\s*/g, '').replace(/\s+/g, '');
+      if (cleanCode && cleanLoc.includes(cleanCode)) return true;
+
+      return false;
+    }
+    window.isLocationMatch = isLocationMatch;
+
     function renderInteractiveMap() {
       const zones = ['白棚', '細倉', '綠棚A', '綠棚B', '綠棚C', '工作棚', '辦公室', '大倉'];
       
       zones.forEach(z => {
-        // 篩選屬於該分區的貨品
         const zoneItems = store.products.filter(p => p.location && p.location.includes(z));
-        
-        // 計算該分區的實時總庫存件數與有存貨品項
         const totalStockQty = zoneItems.reduce((acc, p) => acc + (Number(p.stock) || 0), 0);
         const activeStockItems = zoneItems.filter(p => (Number(p.stock) || 0) > 0);
-        
-        // 僅當有存貨且數量低於/等於預警門檻時，才觸發低存量紅燈預警
         const hasLowStock = activeStockItems.some(p => Number(p.stock) <= Number(p.min || 0));
 
         const countEl = document.getElementById(`count-${z}`);
         const dotEl = document.getElementById(`dot-${z}`);
         const groupEl = document.getElementById(`zone-${z}`);
 
-        // 顯示實時總庫存件數 (如無存貨則顯示 0)
         if (countEl) countEl.textContent = totalStockQty;
 
         if (dotEl) {
           if (totalStockQty === 0) {
-            // 無存貨 / 空置時顯示灰色
             dotEl.setAttribute('fill', '#cbd5e1');
           } else if (hasLowStock) {
-            // 有低存量警報時顯示紅色
             dotEl.setAttribute('fill', '#f43f5e');
           } else {
-            // 正常存量時顯示藍色
             dotEl.setAttribute('fill', '#0284c7');
           }
         }
@@ -1804,12 +1876,10 @@
       const sumEl = document.getElementById('selectedZoneSummary');
       const subFloorBtnContainer = document.getElementById('subFloorFilterContainer');
 
-      // Toggle floor filter UI if "細倉" is active
       if (activeZone === '細倉') {
         if (subFloorBtnContainer) subFloorBtnContainer.classList.remove('hidden');
         if (subFloorBtnContainer) subFloorBtnContainer.classList.add('flex');
         
-        // Update button styles
         ['ALL', '1樓', '2樓'].forEach(f => {
           const btn = document.getElementById(f === 'ALL' ? 'btnFloorAll' : f === '1樓' ? 'btnFloor1F' : 'btnFloor2F');
           if (btn) {
@@ -1825,27 +1895,25 @@
         if (subFloorBtnContainer) subFloorBtnContainer.classList.remove('flex');
       }
 
-      // Filter shelves matching selected zone and floor
       let zoneShelves = store.locations.filter(l => (l.zone && l.zone.includes(activeZone)) || (l.name && l.name.includes(activeZone)));
 
       if (activeZone === '細倉' && store.selectedSubFloor !== 'ALL') {
         zoneShelves = zoneShelves.filter(l => l.name && l.name.includes(store.selectedSubFloor));
       }
 
-      if (titleEl) titleEl.textContent = `【第二層】分區貨架網格：${activeZone}${activeZone === '細倉' && store.selectedSubFloor !== 'ALL' ? ' (' + store.selectedSubFloor + ')' : ''}`;
-      if (sumEl) sumEl.textContent = `此分區共提供 ${zoneShelves.length} 個標註貨架（點擊卡片調出第三層實存物品彈窗）`;
+      if (titleEl) titleEl.textContent = `各存倉位置貨架：${activeZone}${activeZone === '細倉' && store.selectedSubFloor !== 'ALL' ? ' (' + store.selectedSubFloor + ')' : ''}`;
+      if (sumEl) sumEl.textContent = `此分區共提供 ${zoneShelves.length} 個標註貨架（點擊查看實存物品彈窗）`;
 
       const gridContainer = document.getElementById('interactiveShelfGrid');
       if (!gridContainer) return;
 
       if (zoneShelves.length === 0) {
-        gridContainer.innerHTML = `<div class="col-span-full py-10 text-center text-slate-400 bg-slate-50 rounded-2xl border border-dashed border-slate-200">此區域「${activeZone}」尚未新增特定貨架卡片，你可以點擊右上方「新增貨架位」建立！</div>`;
+        gridContainer.innerHTML = `<div class="col-span-full py-10 text-center text-slate-400 bg-slate-50 rounded-2xl border border-dashed border-slate-200">此區域「${activeZone}」尚未新增特定貨架資料，你可以點擊右上方「新增貨架位」建立！</div>`;
         return;
       }
 
-      // Render LEVEL 2 Shelf Cards Grid
       gridContainer.innerHTML = zoneShelves.map(shelf => {
-        const shelfItems = store.products.filter(p => p.location && p.location.includes(shelf.name));
+        const shelfItems = store.products.filter(p => isLocationMatch(p.location, shelf.name, shelf.code));
         const hasLowStock = shelfItems.some(p => p.stock <= p.min);
 
         return `
@@ -1880,11 +1948,10 @@
     }
     window.renderInteractiveMap = renderInteractiveMap;
 
-    /* LEVEL 3 Drawer Modal: Open Shelf Item Details */
     function openShelfDetailsModal(fullLocName, code) {
       document.getElementById('shelfDetailTitle').textContent = `${fullLocName} 實存物品清單`;
       
-      const items = store.products.filter(p => p.location && (p.location.includes(fullLocName) || p.location.includes(code)));
+      const items = store.products.filter(p => isLocationMatch(p.location, fullLocName, code));
       document.getElementById('shelfDetailCapacity').textContent = `貨架總存品項：${items.length} 種 (總計 ${items.reduce((a,b)=>a+(b.stock||0),0)} 個)`;
 
       const container = document.getElementById('shelfDetailItemsList');
@@ -1949,6 +2016,150 @@
       }
     }
     window.generateBarcodePreview = generateBarcodePreview;
+
+    function downloadLabelAsPNG() {
+      const pId = document.getElementById('labelSelectProduct')?.value;
+      const prod = store.products.find(p => p.id === pId) || store.products[0];
+      if (!prod) return;
+
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = 640;
+      canvas.height = 360;
+
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.strokeStyle = '#cbd5e1';
+      ctx.lineWidth = 4;
+      ctx.strokeRect(12, 12, canvas.width - 24, canvas.height - 24);
+
+      ctx.fillStyle = '#0284c7';
+      ctx.font = 'bold 12px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('庫存標籤', canvas.width / 2, 45);
+
+      ctx.fillStyle = '#0f172a';
+      ctx.font = 'bold 28px monospace, sans-serif';
+      ctx.fillText(prod.id, canvas.width / 2, 85);
+
+      ctx.fillStyle = '#475569';
+      ctx.font = 'bold 16px Inter, sans-serif';
+      ctx.fillText(prod.name, canvas.width / 2, 118);
+
+      const svgEl = document.getElementById('barcodeSvg');
+      const serializer = new XMLSerializer();
+      let svgStr = serializer.serializeToString(svgEl);
+      const svgBlob = new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(svgBlob);
+
+      const barcodeImg = new Image();
+      barcodeImg.onload = function() {
+        ctx.drawImage(barcodeImg, 45, 145, 340, 130);
+        URL.revokeObjectURL(url);
+
+        const qrImgOrCanvas = document.querySelector('#qrcodeCanvas canvas') || document.querySelector('#qrcodeCanvas img');
+        
+        function drawFooterAndDownload() {
+          ctx.fillStyle = '#64748b';
+          ctx.font = 'bold 14px Inter, sans-serif';
+          ctx.fillText(`存放貨位: ${prod.location || '未設定'}`, canvas.width / 2, 320);
+
+          const dataUrl = canvas.toDataURL('image/png');
+          const link = document.createElement('a');
+          const cleanName = prod.name.replace(/[\\/:*?"<>|]/g, '_');
+          link.download = `Label_${prod.id}_${cleanName}.png`;
+          link.href = dataUrl;
+          link.click();
+          showToast(`標籤 PNG 圖片 [Label_${prod.id}.png] 已成功匯出！`, 'success');
+        }
+
+        if (qrImgOrCanvas) {
+          if (qrImgOrCanvas.tagName.toLowerCase() === 'canvas') {
+            ctx.drawImage(qrImgOrCanvas, 435, 145, 130, 130);
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = 'bold 11px Inter, sans-serif';
+            ctx.fillText('QR CODE', 500, 290);
+            drawFooterAndDownload();
+          } else {
+            const qrImg = new Image();
+            qrImg.onload = function() {
+              ctx.drawImage(qrImg, 435, 145, 130, 130);
+              ctx.fillStyle = '#94a3b8';
+              ctx.font = 'bold 11px Inter, sans-serif';
+              ctx.fillText('QR CODE', 500, 290);
+              drawFooterAndDownload();
+            };
+            qrImg.src = qrImgOrCanvas.src;
+          }
+        } else {
+          drawFooterAndDownload();
+        }
+      };
+
+      barcodeImg.src = url;
+    }
+    window.downloadLabelAsPNG = downloadLabelAsPNG;
+
+    function printLabelDirectly() {
+      const pId = document.getElementById('labelSelectProduct')?.value;
+      const prod = store.products.find(p => p.id === pId) || store.products[0];
+      if (!prod) return;
+
+      const svgEl = document.getElementById('barcodeSvg');
+      const serializer = new XMLSerializer();
+      let svgStr = serializer.serializeToString(svgEl);
+
+      const qrImgOrCanvas = document.querySelector('#qrcodeCanvas canvas') || document.querySelector('#qrcodeCanvas img');
+      let qrSrc = '';
+      if (qrImgOrCanvas) {
+        qrSrc = qrImgOrCanvas.tagName.toLowerCase() === 'canvas' ? qrImgOrCanvas.toDataURL('image/png') : qrImgOrCanvas.src;
+      }
+
+      const printWin = window.open('', '_blank', 'width=650,height=450');
+      if (!printWin) {
+        showToast('請允許開啟彈出式視窗以啟動瀏覽器列印', 'error');
+        return;
+      }
+
+      printWin.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>列印標籤 - ${prod.id}</title>
+          <style>
+            body { font-family: system-ui, -apple-system, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #f8fafc; }
+            .label-box { background: #fff; border: 2px solid #000; padding: 24px; text-align: center; width: 420px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+            .header-tag { font-size: 11px; font-weight: bold; color: #0284c7; letter-spacing: 1px; margin-bottom: 8px; }
+            .code { font-size: 26px; font-weight: 900; margin-bottom: 4px; font-family: monospace; }
+            .name { font-size: 15px; font-weight: bold; color: #334155; margin-bottom: 16px; }
+            .flex-graphics { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: #fff; border: 1px border-dashed #cbd5e1; border-radius: 8px; }
+            .loc { font-size: 12px; font-weight: bold; color: #475569; margin-top: 16px; border-top: 1px solid #e2e8f0; padding-top: 10px; }
+          </style>
+        </head>
+        <body>
+          <div class="label-box">
+            <div class="header-tag">庫存標籤</div>
+            <div class="code">${prod.id}</div>
+            <div class="name">${prod.name}</div>
+            <div class="flex-graphics">
+              <div>${svgStr}</div>
+              <div><img src="${qrSrc}" width="90" height="90"/><br/><span style="font-size:10px;color:#94a3b8;font-weight:bold;">QR CODE</span></div>
+            </div>
+            <div class="loc">存放貨位：${prod.location || '未設定'}</div>
+          </div>
+          <script>
+            window.onload = function() {
+              window.print();
+              setTimeout(function() { window.close(); }, 500);
+            };
+          <\/script>
+        </body>
+        </html>
+      `);
+      printWin.document.close();
+    }
+    window.printLabelDirectly = printLabelDirectly;
 
     let chart1, chart2;
     function renderReports() {
@@ -2117,7 +2328,7 @@
         const productData = { 
           id: item.id, 
           name: item.name, 
-          location: item.location || '細倉1樓 / 貨架 1樓-01', 
+          location: item.location || '細倉1樓 / 貨架 1-1', 
           stock: item.qty || 0, 
           min: 5, 
           unit: item.unit || '個', 
@@ -2175,6 +2386,19 @@
             renderOverview();
             renderInventoryTable();
             renderInteractiveMap();
+          }
+        });
+        onSnapshot(poOrdersColRef, (snap) => {
+          if (!snap.empty) {
+            store.poOrders = snap.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+            renderPoOrders();
+          }
+        });
+        onSnapshot(withdrawalsColRef, (snap) => {
+          if (!snap.empty) {
+            store.withdrawals = snap.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+            renderWithdrawals();
+            renderOverview();
           }
         });
       }
