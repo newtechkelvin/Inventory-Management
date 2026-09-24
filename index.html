@@ -1491,7 +1491,7 @@
             date: new Date().toLocaleDateString('zh-TW')
           };
           store.products.push(newProd);
-          if (currentUser) setDoc(doc(productsColRef, item.id), newProd);
+          if (currentUser) setDoc(doc(productsColRef, encodeURIComponent(item.id)), newProd);
         }
         addPoItemRow(item.id, item.qty);
       });
@@ -1519,7 +1519,7 @@
           });
         });
 
-        const newPo = {
+          if (currentUser) setDoc(doc(productsColRef, encodeURIComponent(item.id)), newProd);
           id: poNo,
           supplier: supplier,
           status: 'pending',
@@ -1527,11 +1527,15 @@
           items: items
         };
 
-        store.poOrders.unshift(newPo);
+          if (currentUser) setDoc(doc(productsColRef, encodeURIComponent(item.id)), newProd);
         renderPoOrders();
         closeModal('modal-create-po');
 
-        if (currentUser) await setDoc(doc(poOrdersColRef, newPo.id), newPo);
+        if (currentUser) {
+          // Encode PO ID safely to handle slashes like NTL-PO-0903/2026 in document references
+          const safeDocKey = encodeURIComponent(newPo.id);
+          await setDoc(doc(poOrdersColRef, safeDocKey), newPo);
+        }
         showToast(`PO 採購預錄單 [${poNo}] 建立成功！`, 'success');
       } catch (err) {
         showToast("建立失敗: " + err.message, "error");
@@ -1591,8 +1595,9 @@
             prod.location = locName;
             prod.date = new Date().toLocaleDateString('zh-TW');
 
-            if (currentUser) {
-              updateDoc(doc(productsColRef, prod.id), { stock: prod.stock, location: locName, date: prod.date });
+           if (currentUser) {
+              const safeKey = prod.docId || encodeURIComponent(prod.id);
+              updateDoc(doc(productsColRef, safeKey), { stock: prod.stock, location: locName, date: prod.date });
             }
           }
         });
@@ -1678,8 +1683,9 @@
         renderInventoryTable();
         document.getElementById('movementForm').reset();
 
-        if (currentUser) {
-          await updateDoc(doc(productsColRef, prod.id), { stock: newStock, location: locName, date: prod.date });
+ if (currentUser) {
+          const safeKey = prod.docId || encodeURIComponent(prod.id);
+          await updateDoc(doc(productsColRef, safeKey), { stock: newStock, location: locName, date: prod.date });
           await addDoc(movementsColRef, record);
         }
         showToast("庫存異動成功！", "success");
@@ -1766,7 +1772,10 @@
         renderOverview();
         closeModal('modal-create-withdrawal');
 
-        if (currentUser) await setDoc(doc(withdrawalsColRef, newDoc.id), newDoc);
+           if (currentUser) {
+          const safeKey = encodeURIComponent(newDoc.id);
+          await setDoc(doc(withdrawalsColRef, safeKey), newDoc);
+        }
         showToast(`提取單 [${newId}] 建立成功！`, 'success');
       } catch (err) {
         showToast("建立提取單失敗: " + err.message, "error");
@@ -1802,14 +1811,14 @@
 
         if (type === 'po') {
           const target = store.poOrders.find(p => p.id === id);
-          const docKey = target?.docId || id;
+          const docKey = target?.docId || encodeURIComponent(id);
           store.poOrders = store.poOrders.filter(p => p.id !== id);
           renderPoOrders();
           if (currentUser) await deleteDoc(doc(poOrdersColRef, docKey));
           showToast(`已成功刪除 PO 採購單 [${id}]`, 'success');
         } else if (type === 'withdrawal') {
           const target = store.withdrawals.find(w => w.id === id);
-          const docKey = target?.docId || id;
+          const docKey = target?.docId || encodeURIComponent(id);
           store.withdrawals = store.withdrawals.filter(w => w.id !== id);
           renderWithdrawals();
           renderOverview();
@@ -1817,7 +1826,7 @@
           if (currentUser) await deleteDoc(doc(withdrawalsColRef, docKey));
           showToast(`已成功刪除提取單 [${id}]`, 'success');
         }
-
+        
         pendingDeleteTarget = null;
         closeModal('modal-delete-confirm');
       } catch (err) {
@@ -2273,10 +2282,13 @@
         if (idx >= 0) store.products[idx] = productData;
         else store.products.push(productData);
 
-        renderOverview();
+         renderOverview();
         renderInventoryTable();
         closeModal('modal-add-product');
-        if (currentUser) await setDoc(doc(productsColRef, id), productData);
+        if (currentUser) {
+          const safeKey = encodeURIComponent(id);
+          await setDoc(doc(productsColRef, safeKey), productData);
+        }
         showToast("貨品資料儲存成功！", "success");
       } catch (err) {
         showToast("儲存失敗: " + err.message, "error");
@@ -2377,7 +2389,10 @@
         if (idx >= 0) store.products[idx] = productData;
         else store.products.push(productData);
 
-        if (currentUser) setDoc(doc(productsColRef, item.id), productData);
+        if (currentUser) {
+          const safeKey = encodeURIComponent(item.id);
+          setDoc(doc(productsColRef, safeKey), productData);
+        }
         count++;
       });
 
