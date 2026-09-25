@@ -1876,8 +1876,11 @@
           if (currentUser) await deleteDoc(doc(withdrawalsColRef, docKey));
           showToast(`已成功刪除提取單 [${id}]`, 'success');
         } else if (type === 'location') {
-          const { name, code } = pendingDeleteTarget;
+          const { name, code, zone } = pendingDeleteTarget;
           
+          const targetLoc = store.locations.find(l => l.name === name || (l.code === code && l.zone === zone));
+          const docKey = targetLoc?.docId || encodeURIComponent(`${zone || targetLoc?.zone}_${code}`);
+
           // Find matching products and update location to '未設定'
           const matchedProds = store.products.filter(p => isLocationMatch(p.location, name, code));
           matchedProds.forEach(p => {
@@ -1889,9 +1892,16 @@
           });
 
           // Remove location from store
-          store.locations = store.locations.filter(l => !(l.name === name || (l.code === code && l.zone === pendingDeleteTarget.zone)));
+          store.locations = store.locations.filter(l => !(l.name === name || (l.code === code && l.zone === zone)));
           renderInteractiveMap();
           renderInventoryTable();
+          populateMovementDropdowns();
+          populateProdLocationSelect();
+
+          if (currentUser) {
+            await deleteDoc(doc(locationsColRef, docKey));
+          }
+
           showToast(`已成功刪除貨架 [${name}]！${matchedProds.length > 0 ? `已將 ${matchedProds.length} 項貨品重新標示為「未設定」。` : ''}`, 'success');
         }
 
@@ -2101,10 +2111,26 @@
         // 1. Update matching shelf location
         const shelf = store.locations.find(l => l.name === oldName || (l.code === oldCode && l.zone === newZone));
         if (shelf) {
+          const oldZone = shelf.zone || newZone;
+          const oldKey = shelf.docId || encodeURIComponent(`${oldZone}_${oldCode}`);
+          const newKey = encodeURIComponent(`${newZone}_${newCode}`);
+
           shelf.name = newFullName;
           shelf.zone = newZone;
           shelf.code = newCode;
           shelf.capacity = newCap ? parseInt(newCap) : null;
+
+          if (currentUser) {
+            if (oldKey !== newKey) {
+              await deleteDoc(doc(locationsColRef, oldKey));
+            }
+            await setDoc(doc(locationsColRef, newKey), {
+              name: newFullName,
+              zone: newZone,
+              code: newCode,
+              capacity: shelf.capacity
+            });
+          }
         }
 
         // 2. Cascade update all products on this shelf
@@ -2120,6 +2146,8 @@
         renderInteractiveMap();
         renderInventoryTable();
         renderOverview();
+        populateMovementDropdowns();
+        populateProdLocationSelect();
         closeModal('modal-edit-location');
 
         showToast(`貨架成功修改為 [${newFullName}]！已連動更新 ${matchedProds.length} 項貨品的貨位。`, 'success');
@@ -2462,7 +2490,7 @@
       e.preventDefault();
       try {
         const zone = document.getElementById('locZone').value;
-        const code = document.getElementById('locCode').value;
+        const code = document.getElementById('locCode').value.trim();
         const cap = document.getElementById('locCapacity').value;
         const fullName = `${zone} / 貨架 ${code}`;
 
@@ -2470,8 +2498,13 @@
 
         store.locations.push(newLoc);
         renderInteractiveMap();
+        populateMovementDropdowns();
+        populateProdLocationSelect();
         closeModal('modal-add-location');
-        if (currentUser) await addDoc(locationsColRef, newLoc);
+        if (currentUser) {
+          const safeKey = encodeURIComponent(`${zone}_${code}`);
+          await setDoc(doc(locationsColRef, safeKey), newLoc);
+        }
         showToast(`貨架 [${fullName}] 新增成功！`, 'success');
       } catch (err) {
         showToast("新增失敗: " + err.message, "error");
@@ -2608,6 +2641,17 @@
             });
             renderWithdrawals();
             renderOverview();
+          }
+        });
+        onSnapshot(locationsColRef, (snap) => {
+          if (!snap.empty) {
+            store.locations = snap.docs.map(doc => {
+              const d = doc.data();
+              return { ...d, docId: doc.id };
+            });
+            renderInteractiveMap();
+            populateMovementDropdowns();
+            populateProdLocationSelect();
           }
         });
       }
