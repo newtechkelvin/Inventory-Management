@@ -1292,9 +1292,10 @@
             unit = cleanedCols[3];
           }
 
+          // Support 5th column or 4th column for location string (e.g., 細倉 / 11-3)
           if (cleanedCols[4]) {
             location = cleanedCols[4];
-          } else if (cleanedCols[3] && unit) {
+          } else if (cleanedCols[3] && isNaN(cleanedCols[3])) {
             location = cleanedCols[3];
           }
 
@@ -1303,7 +1304,7 @@
             name: name.trim(),
             qty: qty,
             unit: unit || '個',
-            location: location
+            location: location.trim()
           });
         }
       });
@@ -1966,6 +1967,59 @@
     }
     window.isLocationMatch = isLocationMatch;
 
+    /* Smart Auto-Location Creator Helper */
+    function ensureLocationExists(rawLocationStr) {
+      if (!rawLocationStr || !rawLocationStr.trim()) return '未設定';
+      const cleanLoc = rawLocationStr.trim();
+
+      // Check if already matches an existing shelf
+      const existing = store.locations.find(l => isLocationMatch(cleanLoc, l.name, l.code) || l.name === cleanLoc);
+      if (existing) return existing.name;
+
+      // Auto-detect Zone
+      const zones = ['白棚', '細倉1樓', '細倉2樓', '細倉', '綠棚A', '綠棚B', '綠棚C', '綠棚', '工作棚', '辦公室', '大倉'];
+      let detectedZone = '細倉';
+      
+      for (const z of zones) {
+        if (cleanLoc.includes(z)) {
+          detectedZone = z;
+          break;
+        }
+      }
+
+      // Extract Rack Code (e.g., "11-3" from "細倉 / 11-3" or "5-2")
+      let code = cleanLoc;
+      if (cleanLoc.includes('/')) {
+        const parts = cleanLoc.split('/');
+        code = parts[parts.length - 1].trim();
+      }
+      code = code.replace(/貨架\s*/g, '').trim();
+
+      const formattedName = `${detectedZone} / 貨架 ${code}`;
+
+      // Double check formatted name
+      const existingFormatted = store.locations.find(l => l.name === formattedName);
+      if (existingFormatted) return existingFormatted.name;
+
+      // Automatically add new location to system store & Firebase
+      const newLoc = {
+        name: formattedName,
+        zone: detectedZone,
+        code: code,
+        capacity: 500
+      };
+
+      store.locations.push(newLoc);
+
+      if (currentUser) {
+        const safeKey = encodeURIComponent(`${detectedZone}_${code}`);
+        setDoc(doc(locationsColRef, safeKey), newLoc);
+      }
+
+      return formattedName;
+    }
+    window.ensureLocationExists = ensureLocationExists;
+
     function renderInteractiveMap() {
       const zones = ['白棚', '細倉', '綠棚A', '綠棚B', '綠棚C', '工作棚', '辦公室', '大倉'];
       
@@ -2554,11 +2608,17 @@
       if (parsedItems.length === 0) return showToast("請複製貼上有效的 Excel 資料！", "error");
 
       let count = 0;
+      let newLocationsCreated = 0;
+      const initialLocCount = store.locations.length;
+
       parsedItems.forEach(item => {
+        // Auto adapt & create new location shelf if absent
+        const validatedLocation = ensureLocationExists(item.location);
+
         const productData = { 
           id: item.id, 
           name: item.name, 
-          location: item.location || '細倉1樓 / 貨架 1-1', 
+          location: validatedLocation, 
           stock: item.qty || 0, 
           min: 5, 
           unit: item.unit || '個', 
@@ -2576,12 +2636,23 @@
         count++;
       });
 
+      newLocationsCreated = store.locations.length - initialLocCount;
+
       closeModal('modal-import-csv');
       document.getElementById('csvTextArea').value = '';
       document.getElementById('excelPreviewContainer').classList.add('hidden');
+      
       renderOverview();
       renderInventoryTable();
-      showToast(`一鍵成功剖析並寫入 ${count} 筆 Excel 零組件資料！`, "success");
+      renderInteractiveMap();
+      populateMovementDropdowns();
+      populateProdLocationSelect();
+
+      let msg = `一鍵成功剖析並寫入 ${count} 筆 Excel 零組件資料！`;
+      if (newLocationsCreated > 0) {
+        msg += `（系統已為你自動新增 ${newLocationsCreated} 個新貨架位置）`;
+      }
+      showToast(msg, "success");
     }
     window.handleCSVImport = handleCSVImport;
 
