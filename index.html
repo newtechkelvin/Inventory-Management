@@ -1154,31 +1154,11 @@
     const movementsColRef = collection(db, 'artifacts', appId, 'public', 'data', 'movements');
     const poOrdersColRef = collection(db, 'artifacts', appId, 'public', 'data', 'poOrders');
 
-    /* Generate default racks with standardized clean codes for every zone */
-    const zonesConfig = [
-      { name: '白棚', prefix: 'A-', count: 10, zoneKey: '白棚' },
-      { name: '細倉1樓', prefix: '1-', count: 10, zoneKey: '細倉1樓' },
-      { name: '細倉2樓', prefix: '2-', count: 10, zoneKey: '細倉2樓' },
-      { name: '綠棚A', prefix: 'GA-', count: 10, zoneKey: '綠棚A' },
-      { name: '綠棚B', prefix: 'GB-', count: 10, zoneKey: '綠棚B' },
-      { name: '綠棚C', prefix: 'GC-', count: 10, zoneKey: '綠棚C' },
-      { name: '工作棚', prefix: 'W-', count: 10, zoneKey: '工作棚' },
-      { name: '辦公室', prefix: 'OFF-', count: 10, zoneKey: '辦公室' },
-      { name: '大倉', prefix: 'D-', count: 10, zoneKey: '大倉' }
-    ];
-
+    /* Empty Initial Datasets (All default demo data removed) */
     const defaultLocations = [];
-    zonesConfig.forEach(z => {
-      for (let i = 1; i <= z.count; i++) {
-        const rackCode = `${z.prefix}${i}`;
-        defaultLocations.push({
-          name: `${z.name} / 貨架 ${rackCode}`,
-          zone: z.zoneKey,
-          code: rackCode,
-          capacity: 500
-        });
-      }
-    });
+    const defaultProducts = [];
+    const defaultPoOrders = [];
+    const defaultWithdrawals = [];
 
     const store = {
       currentPage: 1,
@@ -1187,10 +1167,10 @@
       sortAsc: true,
       selectedMapZone: '細倉',
       selectedSubFloor: 'ALL',
-      products: [...defaultProducts],
-      locations: [...defaultLocations],
-      withdrawals: [...defaultWithdrawals],
-      poOrders: [...defaultPoOrders],
+      products: [],
+      locations: [],
+      withdrawals: [],
+      poOrders: [],
       movements: []
     };
 
@@ -2228,6 +2208,16 @@
     function populateLabelSelect() {
       const select = document.getElementById('labelSelectProduct');
       if (select) {
+        if (store.products.length === 0) {
+          select.innerHTML = `<option value="">-- 目前無貨品資料 --</option>`;
+          document.getElementById('barcodeCode').textContent = '—';
+          document.getElementById('barcodeName').textContent = '請先新增或匯入貨品';
+          const qrContainer = document.getElementById('qrcodeCanvas');
+          if (qrContainer) qrContainer.innerHTML = '';
+          const svgEl = document.getElementById('barcodeSvg');
+          if (svgEl) svgEl.innerHTML = '';
+          return;
+        }
         select.innerHTML = store.products.map(p => `<option value="${p.id}">${p.id} - ${p.name}</option>`).join('');
         generateBarcodePreview();
       }
@@ -2237,7 +2227,11 @@
     function generateBarcodePreview() {
       const pId = document.getElementById('labelSelectProduct')?.value;
       const prod = store.products.find(p => p.id === pId) || store.products[0];
-      if (!prod) return;
+      if (!prod) {
+        document.getElementById('barcodeCode').textContent = '—';
+        document.getElementById('barcodeName').textContent = '請先新增或匯入貨品';
+        return;
+      }
 
       document.getElementById('barcodeCode').textContent = prod.id;
       document.getElementById('barcodeName').textContent = prod.name;
