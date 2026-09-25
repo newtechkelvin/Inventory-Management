@@ -1899,19 +1899,60 @@
     }
     window.filterSubFloor = filterSubFloor;
 
+    function parseLocationString(locStr) {
+      if (!locStr || typeof locStr !== 'string') return { zone: '', code: '' };
+      let clean = locStr.trim();
+      if (!clean || clean === '-' || clean === '- /' || clean === '- / -' || clean === '未設定') {
+        return { zone: '', code: '' };
+      }
+
+      const zones = ['細倉1樓', '細倉2樓', '細倉', '白棚', '綠棚A', '綠棚B', '綠棚C', '綠棚', '工作棚', '辦公室', '大倉'];
+      let detectedZone = '';
+
+      for (const z of zones) {
+        if (clean.includes(z)) {
+          detectedZone = z;
+          break;
+        }
+      }
+
+      let code = clean;
+      if (clean.includes('/')) {
+        const parts = clean.split('/');
+        code = parts[parts.length - 1].trim();
+      } else if (detectedZone) {
+        code = clean.replace(detectedZone, '').trim();
+      }
+
+      code = code.replace(/^貨架\s*/, '').trim();
+      if (!code && detectedZone) code = detectedZone;
+
+      return { zone: detectedZone, code: code };
+    }
+    window.parseLocationString = parseLocationString;
+
     function isLocationMatch(prodLocation, shelfName, shelfCode) {
       if (!prodLocation) return false;
-      const normLoc = prodLocation.toLowerCase().trim();
-      const normName = shelfName ? shelfName.toLowerCase().trim() : '';
-      const normCode = shelfCode ? shelfCode.toLowerCase().trim() : '';
+      const normLoc = prodLocation.trim();
+      const normName = shelfName ? shelfName.trim() : '';
+      if (normName && normLoc.toLowerCase() === normName.toLowerCase()) return true;
 
-      if (normName && normLoc === normName) return true;
-      if (normName && normLoc.includes(normName)) return true;
-      if (normCode && normLoc.includes(normCode)) return true;
+      const prodParsed = parseLocationString(prodLocation);
+      const shelfParsed = parseLocationString(shelfName || shelfCode);
 
-      const cleanLoc = normLoc.replace(/貨架\s*/g, '').replace(/\s+/g, '');
-      const cleanCode = normCode.replace(/貨架\s*/g, '').replace(/\s+/g, '');
-      if (cleanCode && cleanLoc.includes(cleanCode)) return true;
+      if (!prodParsed.code) return false;
+
+      const targetCode = (shelfCode || shelfParsed.code || '').replace(/^貨架\s*/, '').trim().toLowerCase();
+      const targetZone = (shelfParsed.zone || '').trim().toLowerCase();
+
+      const pCode = prodParsed.code.toLowerCase();
+      const pZone = prodParsed.zone.toLowerCase();
+
+      if (pCode && targetCode && pCode === targetCode) {
+        if (!pZone || !targetZone || pZone.includes(targetZone) || targetZone.includes(pZone)) {
+          return true;
+        }
+      }
 
       return false;
     }
@@ -1920,36 +1961,19 @@
     /* Smart Auto-Location Creator Helper */
     function ensureLocationExists(rawLocationStr) {
       if (!rawLocationStr || !rawLocationStr.trim()) return '未設定';
-      const cleanLoc = rawLocationStr.trim();
+      const parsed = parseLocationString(rawLocationStr);
+      if (!parsed.zone && !parsed.code) return '未設定';
 
-      // Check if already matches an existing shelf
-      const existing = store.locations.find(l => isLocationMatch(cleanLoc, l.name, l.code) || l.name === cleanLoc);
-      if (existing) return existing.name;
-
-      // Auto-detect Zone
-      const zones = ['白棚', '細倉1樓', '細倉2樓', '細倉', '綠棚A', '綠棚B', '綠棚C', '綠棚', '工作棚', '辦公室', '大倉'];
-      let detectedZone = '細倉';
-      
-      for (const z of zones) {
-        if (cleanLoc.includes(z)) {
-          detectedZone = z;
-          break;
-        }
-      }
-
-      // Extract Rack Code (e.g., "11-3" from "細倉 / 11-3" or "5-2")
-      let code = cleanLoc;
-      if (cleanLoc.includes('/')) {
-        const parts = cleanLoc.split('/');
-        code = parts[parts.length - 1].trim();
-      }
-      code = code.replace(/貨架\s*/g, '').trim();
-
+      const detectedZone = parsed.zone || '細倉';
+      const code = parsed.code || '未定';
       const formattedName = `${detectedZone} / 貨架 ${code}`;
 
-      // Double check formatted name
-      const existingFormatted = store.locations.find(l => l.name === formattedName);
-      if (existingFormatted) return existingFormatted.name;
+      // Check if already matches an existing shelf in store
+      const existing = store.locations.find(l => {
+        if (l.name === formattedName) return true;
+        return isLocationMatch(rawLocationStr, l.name, l.code);
+      });
+      if (existing) return existing.name;
 
       // Automatically add new location to system store & Firebase
       const newLoc = {
