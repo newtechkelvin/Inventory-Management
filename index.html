@@ -1443,7 +1443,9 @@
           <div class="space-y-1.5 text-xs text-slate-600 max-h-40 overflow-y-auto pr-1">
             ${po.items.map(i => {
               const prod = store.products.find(p => p.id === i.prodId);
-              return `<div class="flex justify-between border-b border-slate-50 pb-1"><span>${i.prodId} · ${prod ? prod.name : (i.name || '零組件')}</span><span class="font-bold">預計: ${i.expectedQty} ${prod ? prod.unit : (i.unit || '個')}</span></div>`;
+              const displayName = i.name || (prod ? prod.name : '零組件');
+              const displayUnit = i.unit || (prod ? prod.unit : '個');
+              return `<div class="flex justify-between border-b border-slate-50 pb-1"><span>${i.prodId} · ${displayName}</span><span class="font-bold">預計: ${i.expectedQty} ${displayUnit}</span></div>`;
             }).join('')}
           </div>
 
@@ -1567,11 +1569,16 @@
         }
 
         const items = [];
-        rowEls.forEach((row) => {
-          const codeInput = row.querySelector('.po-prod-id-input')?.value.trim() || `SKU-${Date.now().toString().slice(-4)}`;
+        rowEls.forEach((row, idx) => {
+          let codeInput = row.querySelector('.po-prod-id-input')?.value.trim();
           const nameInput = row.querySelector('.po-prod-name-input')?.value.trim() || '未命名貨品';
           const qtyInput = parseInt(row.querySelector('.po-qty-input')?.value) || 1;
           const unitInput = row.querySelector('.po-unit-input')?.value.trim() || '個';
+
+          if (!codeInput) {
+            const randSuffix = Math.floor(1000 + Math.random() * 9000);
+            codeInput = `SKU-${randSuffix}-${idx + 1}`;
+          }
 
           items.push({
             prodId: codeInput,
