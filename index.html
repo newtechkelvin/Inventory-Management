@@ -455,7 +455,7 @@
               </div>
             </div>
 
-            <!-- SVG Vector Floorplan directly containing user's exact polygon & rect attributes -->
+            <!-- SVG Vector Floorplan directly containing exact polygon & rect attributes -->
             <div class="relative w-full bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden p-3 sm:p-6 min-h-[380px] sm:min-h-[500px] flex items-center justify-center select-none shadow-inner">
               <svg id="_圖層_1" data-name="圖層 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 652.363 529.551" class="w-full h-auto max-h-[550px] drop-shadow-2xl">
                 <g id="_圖層_2" data-name="圖層 2">
@@ -735,11 +735,11 @@
           <div class="flex items-center justify-between">
             <div class="flex items-center space-x-2">
               <i class="fa-solid fa-file-excel text-emerald-600 text-sm"></i>
-              <span class="font-extrabold text-emerald-950 text-xs">Excel / 試算表極速貼上入單</span>
+              <span class="font-extrabold text-emerald-950 text-xs">Excel / 試算表 / 訂單內文極速貼上入單</span>
             </div>
-            <span class="text-[10px] text-emerald-700 font-medium">從 Excel 複製多行格子，直接貼入下方</span>
+            <span class="text-[10px] text-emerald-700 font-medium">從 Excel 複製多行或貼上採購文字，直接貼入下方</span>
           </div>
-          <textarea id="poExcelPasteBox" rows="2" placeholder="直接在此按下 Ctrl+V 貼上 Excel 複製的格子..." class="w-full font-mono text-[11px] p-2.5 border border-emerald-300 rounded-xl bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
+          <textarea id="poExcelPasteBox" rows="3" placeholder="直接在此按下 Ctrl+V 貼上 Excel 複製的格子或文字訂單...&#10;例如：&#10;1. B-VK13-0000-1 Arm Upper VK130 x 1set&#10;2. Platform ASSY , Main x 1set&#10;3. Bush VK130 x 1set" class="w-full font-mono text-[11px] p-2.5 border border-emerald-300 rounded-xl bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
           <div class="flex justify-end">
             <button type="button" onclick="parsePoExcelPaste()" class="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs rounded-lg transition shadow-sm flex items-center gap-1">
               <i class="fa-solid fa-bolt text-[11px]"></i>
@@ -750,7 +750,7 @@
 
         <div>
           <div class="flex items-center justify-between mb-2">
-            <label class="block font-bold text-slate-700">預計採購貨品清單 *</label>
+            <label class="block font-bold text-slate-700">預計採購貨品清單 (可直接在欄位中修改名稱、編號與數量) *</label>
             <button type="button" onclick="addPoItemRow()" class="text-sky-600 hover:text-sky-700 font-bold text-xs flex items-center gap-1">
               <i class="fa-solid fa-plus text-[10px]"></i> 增加一項物品
             </button>
@@ -925,7 +925,7 @@
     </div>
   </div>
 
-  <!-- NEW MODAL: Edit Location Modal -->
+  <!-- MODAL: Edit Location Modal -->
   <div id="modal-edit-location" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-md overflow-hidden">
       <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
@@ -1154,12 +1154,6 @@
     const movementsColRef = collection(db, 'artifacts', appId, 'public', 'data', 'movements');
     const poOrdersColRef = collection(db, 'artifacts', appId, 'public', 'data', 'poOrders');
 
-    /* Empty Initial Datasets (All default demo data removed) */
-    const defaultLocations = [];
-    const defaultProducts = [];
-    const defaultPoOrders = [];
-    const defaultWithdrawals = [];
-
     const store = {
       currentPage: 1,
       pageSize: 10,
@@ -1208,55 +1202,75 @@
     }
     window.closeModal = closeModal;
 
-    /* Smart Excel Parsing Helper */
     function parseExcelClipboardData(rawText) {
       if (!rawText || !rawText.trim()) return [];
       const lines = rawText.trim().split(/\r?\n/);
       const items = [];
 
-      lines.forEach((line, index) => {
-        if (!line.trim()) return;
-        if (index === 0 && (line.includes('編號') || line.includes('品名') || line.includes('備註'))) return;
+      lines.forEach((line) => {
+        let cleanLine = line.trim();
+        if (!cleanLine) return;
 
-        const cols = line.includes('\t') ? line.split('\t') : line.split(',');
-        const cleanedCols = cols.map(c => c.trim().replace(/^"(.*)"$/, '$1'));
+        if (cleanLine.match(/^(Parts order|Parts for|Order List|Item List)\s*:/i)) return;
+        if (cleanLine.match(/^Parts for/i) && !cleanLine.match(/\bx\s*\d+/i)) return;
 
-        if (cleanedCols.length >= 2) {
-          const id = cleanedCols[0] || `SKU-${Date.now().toString().slice(-4)}`;
-          const name = cleanedCols[1] || '未命名零組件';
-          
-          let qty = 1;
-          let unit = '個';
-          let location = '細倉1樓 / 貨架 1-1';
+        if (cleanLine.includes('\t')) {
+          const cols = cleanLine.split('\t').map(c => c.trim().replace(/^"(.*)"$/, '$1'));
+          if (cols.length >= 2) {
+            let id = cols[0] || `SKU-${Date.now().toString().slice(-4)}`;
+            let name = cols[1] || '未命名零組件';
+            let qty = 1;
+            let unit = '個';
+            let location = '細倉1樓 / 貨架 1-1';
 
-          if (cleanedCols[2]) {
-            const rawQtyStr = cleanedCols[2];
-            const numMatch = rawQtyStr.match(/\d+/);
-            if (numMatch) qty = parseInt(numMatch[0]);
-            
-            const unitMatch = rawQtyStr.replace(/\d+/g, '').trim();
-            if (unitMatch) unit = unitMatch;
+            if (cols[2]) {
+              const numMatch = cols[2].match(/\d+/);
+              if (numMatch) qty = parseInt(numMatch[0]);
+              const unitMatch = cols[2].replace(/\d+/g, '').trim();
+              if (unitMatch) unit = unitMatch;
+            }
+            if (cols[3] && !unit) unit = cols[3];
+            if (cols[4]) location = cols[4];
+            else if (cols[3] && isNaN(cols[3])) location = cols[3];
+
+            items.push({ id, name, qty, unit: unit || '個', location });
+            return;
           }
-
-          if (cleanedCols[3] && !unit) {
-            unit = cleanedCols[3];
-          }
-
-          // Support 5th column or 4th column for location string (e.g., 細倉 / 11-3)
-          if (cleanedCols[4]) {
-            location = cleanedCols[4];
-          } else if (cleanedCols[3] && isNaN(cleanedCols[3])) {
-            location = cleanedCols[3];
-          }
-
-          items.push({
-            id: id.trim(),
-            name: name.trim(),
-            qty: qty,
-            unit: unit || '個',
-            location: location.trim()
-          });
         }
+
+        cleanLine = cleanLine.replace(/^\d+[\.\)]\s*/, '');
+
+        let qty = 1;
+        let unit = '個';
+
+        const qtyMatch = cleanLine.match(/\s*x\s*(\d+)\s*([a-zA-Z\u4e00-\u9fa5]*)$/i) || cleanLine.match(/\s+(\d+)\s*([a-zA-Z\u4e00-\u9fa5]+)$/i);
+        if (qtyMatch) {
+          qty = parseInt(qtyMatch[1]) || 1;
+          if (qtyMatch[2]) unit = qtyMatch[2];
+          cleanLine = cleanLine.substring(0, qtyMatch.index).trim();
+        }
+
+        if (!cleanLine) return;
+
+        let code = '';
+        let name = cleanLine;
+
+        const codeMatch = cleanLine.match(/^([A-Za-z0-9\-_/]{4,25})\s+(.+)$/);
+        if (codeMatch) {
+          code = codeMatch[1].trim();
+          name = codeMatch[2].trim();
+        } else {
+          name = cleanLine.replace(/\s*,\s*/g, ' - ').trim();
+          code = name.replace(/[^a-zA-Z0-9\-_]/g, '').slice(0, 15).toUpperCase() || `SKU-${Math.floor(1000 + Math.random() * 9000)}`;
+        }
+
+        items.push({
+          id: code,
+          name: name,
+          qty: qty,
+          unit: unit || '個',
+          location: '細倉1樓 / 貨架 1-1'
+        });
       });
 
       return items;
@@ -1468,31 +1482,64 @@
     }
     window.initPoItemsForm = initPoItemsForm;
 
-    function addPoItemRow(initialCode = '', initialQty = 10) {
+    function addPoItemRow(initialCode = '', initialName = '', initialQty = 1, initialUnit = 'set') {
       const container = document.getElementById('poItemsContainer');
       if (!container) return;
       const rowId = 'poRow_' + Date.now() + Math.random().toString(36).substr(2, 4);
       const row = document.createElement('div');
       row.id = rowId;
-      row.className = 'flex items-center space-x-2';
+      row.className = 'p-2.5 bg-slate-50 border border-slate-200 rounded-xl space-y-2';
+      
       row.innerHTML = `
-        <select class="po-prod-select flex-1 bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs">
-          ${store.products.map(p => `<option value="${p.id}" ${p.id === initialCode ? 'selected' : ''}>${p.id} - ${p.name}</option>`).join('')}
-          ${!store.products.some(p => p.id === initialCode) && initialCode ? `<option value="${initialCode}" selected>${initialCode} (自訂新品)</option>` : ''}
-        </select>
-        <input type="number" min="1" value="${initialQty}" placeholder="預計數量" class="po-qty-input w-24 bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs">
-        <button type="button" onclick="document.getElementById('${rowId}').remove()" class="text-rose-500 hover:text-rose-700 p-1"><i class="fa-solid fa-trash-can"></i></button>
+        <div class="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center">
+          <div class="sm:col-span-4">
+            <input type="text" value="${initialCode}" placeholder="貨品編號" class="po-prod-id-input w-full bg-white border border-slate-200 rounded-lg p-2 text-xs font-mono font-bold focus:border-sky-500 focus:outline-none">
+          </div>
+          <div class="sm:col-span-5">
+            <input type="text" value="${initialName}" placeholder="貨品名稱" class="po-prod-name-input w-full bg-white border border-slate-200 rounded-lg p-2 text-xs font-semibold focus:border-sky-500 focus:outline-none">
+          </div>
+          <div class="sm:col-span-2 flex items-center space-x-1">
+            <input type="number" min="1" value="${initialQty}" placeholder="數量" class="po-qty-input w-16 bg-white border border-slate-200 rounded-lg p-2 text-xs text-right font-bold focus:border-sky-500 focus:outline-none">
+            <input type="text" value="${initialUnit}" placeholder="單位" class="po-unit-input w-12 bg-white border border-slate-200 rounded-lg p-2 text-xs text-center focus:border-sky-500 focus:outline-none">
+          </div>
+          <div class="sm:col-span-1 text-right flex items-center justify-end space-x-1">
+            <button type="button" onclick="pickProductForPoRow('${rowId}')" title="從已有庫存挑選" class="p-1.5 text-slate-400 hover:text-sky-600 rounded"><i class="fa-solid fa-list text-xs"></i></button>
+            <button type="button" onclick="document.getElementById('${rowId}').remove()" title="刪除此行" class="p-1.5 text-rose-500 hover:text-rose-700 rounded"><i class="fa-solid fa-trash-can text-xs"></i></button>
+          </div>
+        </div>
       `;
       container.appendChild(row);
     }
     window.addPoItemRow = addPoItemRow;
+
+    function pickProductForPoRow(rowId) {
+      if (store.products.length === 0) {
+        showToast("目前庫存庫中無現有產品可選，請直接在文字方塊填寫名稱與編號！", "info");
+        return;
+      }
+      const prodStr = prompt("請輸入或確認貨品編號：\n" + store.products.map(p => `${p.id}: ${p.name}`).join("\n"));
+      if (prodStr) {
+        const found = store.products.find(p => p.id === prodStr.trim() || p.name.includes(prodStr.trim()));
+        const row = document.getElementById(rowId);
+        if (row) {
+          if (found) {
+            row.querySelector('.po-prod-id-input').value = found.id;
+            row.querySelector('.po-prod-name-input').value = found.name;
+            row.querySelector('.po-unit-input').value = found.unit || '個';
+          } else {
+            row.querySelector('.po-prod-id-input').value = prodStr.trim();
+          }
+        }
+      }
+    }
+    window.pickProductForPoRow = pickProductForPoRow;
 
     function parsePoExcelPaste() {
       const rawText = document.getElementById('poExcelPasteBox')?.value || '';
       const items = parseExcelClipboardData(rawText);
 
       if (items.length === 0) {
-        showToast("請在文字框內貼上有效的 Excel 複製格子資料", "error");
+        showToast("請在文字框內貼上有效的 Excel 複製格子或採購文字列表", "error");
         return;
       }
 
@@ -1500,24 +1547,11 @@
       if (container) container.innerHTML = '';
 
       items.forEach(item => {
-        if (!store.products.some(p => p.id === item.id)) {
-          const newProd = {
-            id: item.id,
-            name: item.name,
-            location: item.location || '細倉1樓 / 貨架 1-1',
-            stock: 0,
-            min: 5,
-            unit: item.unit || '個',
-            date: new Date().toLocaleDateString('zh-TW')
-          };
-          store.products.push(newProd);
-          if (currentUser) setDoc(doc(productsColRef, encodeURIComponent(item.id)), newProd);
-        }
-        addPoItemRow(item.id, item.qty);
+        addPoItemRow(item.id, item.name, item.qty, item.unit);
       });
 
       document.getElementById('poExcelPasteBox').value = '';
-      showToast(`已成功剖析並將 ${items.length} 筆 Excel 格子自動帶入 PO 採購單！`, "success");
+      showToast(`已成功剖析並將 ${items.length} 筆採購項目自動帶入表單！`, "success");
     }
     window.parsePoExcelPaste = parsePoExcelPaste;
 
@@ -1527,16 +1561,39 @@
         const poNo = document.getElementById('poNumberInput').value.trim();
         const supplier = document.getElementById('poSupplierInput').value.trim();
 
-        const prodSelects = document.querySelectorAll('.po-prod-select');
-        const qtyInputs = document.querySelectorAll('.po-qty-input');
+        const rowEls = document.querySelectorAll('#poItemsContainer > div');
+        if (rowEls.length === 0) {
+          throw new Error("請至少加入一項採購貨品！");
+        }
 
         const items = [];
-        prodSelects.forEach((sel, idx) => {
+        rowEls.forEach((row) => {
+          const codeInput = row.querySelector('.po-prod-id-input')?.value.trim() || `SKU-${Date.now().toString().slice(-4)}`;
+          const nameInput = row.querySelector('.po-prod-name-input')?.value.trim() || '未命名貨品';
+          const qtyInput = parseInt(row.querySelector('.po-qty-input')?.value) || 1;
+          const unitInput = row.querySelector('.po-unit-input')?.value.trim() || '個';
+
           items.push({
-            prodId: sel.value,
-            expectedQty: parseInt(qtyInputs[idx].value) || 1,
+            prodId: codeInput,
+            name: nameInput,
+            expectedQty: qtyInput,
+            unit: unitInput,
             receivedQty: 0
           });
+
+          if (!store.products.some(p => p.id === codeInput)) {
+            const newProd = {
+              id: codeInput,
+              name: nameInput,
+              location: '細倉1樓 / 貨架 1-1',
+              stock: 0,
+              min: 5,
+              unit: unitInput,
+              date: new Date().toLocaleDateString('zh-TW')
+            };
+            store.products.push(newProd);
+            if (currentUser) setDoc(doc(productsColRef, encodeURIComponent(codeInput)), newProd);
+          }
         });
 
         const newPo = {
@@ -1832,7 +1889,6 @@
           const targetLoc = store.locations.find(l => l.name === name || (l.code === code && l.zone === zone));
           const docKey = targetLoc?.docId || encodeURIComponent(`${zone || targetLoc?.zone}_${code}`);
 
-          // Find matching products and update location to '未設定'
           const matchedProds = store.products.filter(p => isLocationMatch(p.location, name, code));
           matchedProds.forEach(p => {
             p.location = '未設定';
@@ -1842,7 +1898,6 @@
             }
           });
 
-          // Remove location from store
           store.locations = store.locations.filter(l => !(l.name === name || (l.code === code && l.zone === zone)));
           renderInteractiveMap();
           renderInventoryTable();
@@ -1958,7 +2013,6 @@
     }
     window.isLocationMatch = isLocationMatch;
 
-    /* Smart Auto-Location Creator Helper */
     function ensureLocationExists(rawLocationStr) {
       if (!rawLocationStr || !rawLocationStr.trim()) return '未設定';
       const parsed = parseLocationString(rawLocationStr);
@@ -1968,14 +2022,12 @@
       const code = parsed.code || '未定';
       const formattedName = `${detectedZone} / 貨架 ${code}`;
 
-      // Check if already matches an existing shelf in store
       const existing = store.locations.find(l => {
         if (l.name === formattedName) return true;
         return isLocationMatch(rawLocationStr, l.name, l.code);
       });
       if (existing) return existing.name;
 
-      // Automatically add new location to system store & Firebase
       const newLoc = {
         name: formattedName,
         zone: detectedZone,
@@ -2136,7 +2188,6 @@
 
         const newFullName = `${newZone} / 貨架 ${newCode}`;
 
-        // 1. Update matching shelf location
         const shelf = store.locations.find(l => l.name === oldName || (l.code === oldCode && l.zone === newZone));
         if (shelf) {
           const oldZone = shelf.zone || newZone;
@@ -2161,7 +2212,6 @@
           }
         }
 
-        // 2. Cascade update all products on this shelf
         const matchedProds = store.products.filter(p => isLocationMatch(p.location, oldName, oldCode));
         matchedProds.forEach(p => {
           p.location = newFullName;
@@ -2600,7 +2650,6 @@
       const initialLocCount = store.locations.length;
 
       parsedItems.forEach(item => {
-        // Auto adapt & create new location shelf if absent
         const validatedLocation = ensureLocationExists(item.location);
 
         const productData = { 
